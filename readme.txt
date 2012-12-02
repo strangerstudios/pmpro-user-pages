@@ -24,7 +24,7 @@ Please post it in the issues section of GitHub and we'll fix it as soon as we ca
 
 == Changelog ==
 = .2 =
-*  
+*  Added pre_get_posts filter to keep user pages out of searches, etc.
 
 = .1 =
 * This is the initial version of the plugin.

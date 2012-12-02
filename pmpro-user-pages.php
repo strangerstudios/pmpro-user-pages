@@ -94,6 +94,9 @@ function pmproup_wp()
 {
 	global $post, $wpdb, $current_user;
 	
+	if(empty($post->ID))
+		return;
+	
 	$page_user_id = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND (meta_value = '" . $post->ID . "' OR meta_value = '" . $post->post_parent . "') LIMIT 1");
 	
 	if(!empty($page_user_id))
@@ -138,3 +141,44 @@ function pmproup_pmpro_confirmation_message($message)
 	return $message;
 }
 add_action("pmpro_confirmation_message", "pmproup_pmpro_confirmation_message");
+
+/*
+	Remove user pages from frontend searches/etc.
+	
+	All user pages are children of the PMPROUP_PARENT_PAGE_ID page. So lets hide those pages (the main user pages) and the children of those pages (the purchased pages).
+*/
+function pmproup_pre_get_posts($query)
+{
+	//don't fix anything on the admin side, and also let admins see everything
+	if(is_admin() || current_user_can("manage_options"))
+		return $query;
+	
+	//Using a global to cache the user page ids. If it is not set, we need to look them up. (Note we're ignoring posts where the current user is author.)
+	global $wpdb, $current_user, $all_pmpro_user_page_ids;	
+	if(!isset($all_pmpro_user_page_ids))
+	{
+		//these are the top level member pages
+		if(!empty($current_user->ID))
+			$main_user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent = '" . PMPROUP_PARENT_PAGE_ID . "' AND ID <> '" . PMPROUP_PARENT_PAGE_ID . "' AND post_author <> '" . $current_user->ID . "'");	
+		else
+			$main_user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent = '" . PMPROUP_PARENT_PAGE_ID . "' AND ID <> '" . PMPROUP_PARENT_PAGE_ID . "'");	
+		if(empty($main_user_page_ids))
+			return $query;		//didn't find anything
+			
+		//these are the individually purchased user pages
+		if(!empty($current_user->ID))
+			$user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent IN (" . implode(",", $main_user_page_ids) . ") AND post_author <> '" . $current_user->ID . "'");	
+		else
+			$user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent IN (" . implode(",", $main_user_page_ids) . ")");	
+			
+		//combine the top level and sub pages
+		global $all_pmpro_user_page_ids;	
+		$all_pmpro_user_page_ids = array_merge($main_user_page_ids, $user_page_ids);
+	}	
+		
+	//add user page ids to the post__not_in query var
+	$query->set('post__not_in', array_merge($query->query_vars['post__not_in'], $all_pmpro_user_page_ids));	
+			
+	return $query;
+}
+add_filter("pre_get_posts", "pmproup_pre_get_posts");
