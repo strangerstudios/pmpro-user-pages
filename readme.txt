@@ -24,7 +24,8 @@ Please post it in the issues section of GitHub and we'll fix it as soon as we ca
 
 == Changelog ==
 = .2 =
-*  Added pre_get_posts filter to keep user pages out of searches, etc.
+* Added pre_get_posts filter to keep user pages out of searches, etc.
+* The main user page will now show a list of sub pages.
 
 = .1 =
 * This is the initial version of the plugin.

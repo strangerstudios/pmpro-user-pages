@@ -89,6 +89,35 @@ function pmproup_pmpro_member_links_top()
 }
 add_action("pmpro_member_links_top", "pmproup_pmpro_member_links_top");
 
+//show a user's pages on their user page
+function pmproup_add_user_pages_below_the_content($content)
+{
+	global $current_user, $post, $wpdb;
+	
+	//is this the current user's members page?	
+	if(!empty($current_user->ID))
+	{
+		$user_page_id = get_user_meta($current_user->ID, "pmproup_user_page", true);
+		if($user_page_id && $post->ID == $user_page_id)
+		{
+			//alright, let's show the page list at the end of the_content			
+			$pages = $wpdb->get_results("SELECT ID, post_title, UNIX_TIMESTAMP(post_date) as post_date FROM $wpdb->posts WHERE post_parent = '" . $user_page_id . "' AND post_status = 'publish'");
+			if(!empty($pages))
+			{
+				$content .= "\n<ul class='user_page_list'>";
+				foreach($pages as $page)
+				{
+					$content .= '<li><a href="' . get_permalink($page->ID) . '">' . $page->post_title . ' (' . date("m/d/Y", $page->post_date) . ')</a></li>';			
+				}
+				$content .= "\n</ul>";
+			}
+		}
+	}
+	
+	return $content;
+}
+add_action("the_content", "pmproup_add_user_pages_below_the_content");
+
 //lock down a page that was created for a user
 function pmproup_wp()
 {
