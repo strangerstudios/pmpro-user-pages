@@ -3,12 +3,17 @@
 Plugin Name: PMPro User Pages
 Plugin URI: http://www.paidmembershipspro.com/pmpro-user-pages/
 Description: When a user signs up, create a page for them that only they (and admins) have access to.
-Version: .2
+Version: .3
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
+
+To setup:
+
+	1. Create a top level page to store the user pages, e.g. "Members".
+	2. Set the value PMPROUP_PARENT_PAGE_ID to the ID of that page below.
 */
 
-define("PMPROUP_PARENT_PAGE_ID", 382);
+define("PMPROUP_PARENT_PAGE_ID", 2270);
 
 function pmproup_pmpro_after_checkout($user_id)
 {
@@ -33,7 +38,9 @@ function pmproup_pmpro_after_checkout($user_id)
 		  'post_status' => "publish",
 		  'post_title' => $user->display_name,
 		  'post_type' => "page"		  
-		);  
+		); 
+		
+		$postdata = apply_filters("pmpro_user_page_postdata", $postdata, $user, $level);
 		
 		$user_page_id = wp_insert_post($postdata);
 		
@@ -55,6 +62,8 @@ function pmproup_pmpro_after_checkout($user_id)
 		  'post_title' => $level->name,
 		  'post_type' => "page"		  
 		);  
+		
+		$postdata = apply_filters("pmpro_user_page_purchase_postdata", $postdata, $user, $level);
 		
 		$post_id = wp_insert_post($postdata);				
 	}
@@ -118,6 +127,48 @@ function pmproup_add_user_pages_below_the_content($content)
 }
 add_action("the_content", "pmproup_add_user_pages_below_the_content");
 
+//redirect non admins away from parent page
+function pmproup_wp_parent_page()
+{
+	global $wpdb, $post;
+	if(!is_admin() && $post->ID == PMPROUP_PARENT_PAGE_ID)
+	{
+		if(!current_user_can("manage_options"))		
+		{
+			//redirect away
+			wp_redirect(home_url());
+			exit;
+		}
+	}
+}
+add_action("wp", "pmproup_wp_parent_page");
+
+//show admins a list of users on the parent page
+function pmproup_parent_page_content($content)
+{
+	global $post, $wpdb;
+	if(!is_admin() && $post->ID == PMPROUP_PARENT_PAGE_ID)
+	{
+		if(current_user_can("manage_options"))		
+		{
+			//alright, let's show the page list at the end of the_content			
+			$users = $wpdb->get_results("SELECT u.display_name, um.meta_value FROM $wpdb->usermeta um LEFT JOIN $wpdb->users u ON um.user_id = u.ID WHERE um.meta_key = 'pmproup_user_page' GROUP BY um.user_id");
+			if(!empty($users))
+			{
+				$content .= "\n<ul class='user_page_list'>";
+				foreach($users as $user)
+				{
+					$content .= '<li><a href="' . get_permalink($user->meta_value) . '">' . $user->display_name . '</a></li>';		
+				}
+				$content .= "\n</ul>";
+			}	
+		}
+	}	
+
+	return $content;
+}
+add_filter("the_content", "pmproup_parent_page_content");
+
 //lock down a page that was created for a user
 function pmproup_wp()
 {
@@ -158,7 +209,7 @@ function pmproup_pmpro_confirmation_message($message)
 	if(!empty($user_page_id))
 	{
 		//get the last page created for them
-		$lastpage = $wpdb->get_row("SELECT ID, post_title FROM $wpdb->posts WHERE post_parent = '" . $user_page_id . "' ORDER BY ID DESC LIMIT 1");
+		$lastpage = $wpdb->get_row("SELECT ID, post_title FROM $wpdb->posts WHERE post_type = 'page' AND post_parent = '" . $user_page_id . "' ORDER BY ID DESC LIMIT 1");
 		
 		if(!empty($lastpage))
 		{
