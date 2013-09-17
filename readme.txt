@@ -15,6 +15,11 @@ This plugin currently requires Paid Memberships Pro.
 1. Upload the `pmpro-user-pages` directory to the `/wp-content/plugins/` directory of your site.
 1. Activate the plugin through the 'Plugins' menu in WordPress.
 1. Edit the PMPROUP_PARENT_PAGE_ID constant in the plugin file.
+1. Create an empty members page as a root for all member pages.
+1. go back to wp-admin and find that members page and edit it
+1. notice something like /wp-admin/post.php?post=420&action=edit in the URL bar in your browser
+1. note that number after post=420
+1. that number (420 in this example) is the value of the PMPROUP_PARENT_PAGE_ID that you need to manually edit in the pmpro-user-pages.php file. 
 
 == Frequently Asked Questions ==
 
