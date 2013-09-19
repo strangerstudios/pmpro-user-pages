@@ -25,17 +25,17 @@ This plugin currently requires Paid Memberships Pro.
 
 *I found a bug in the plugin.
 
-    Please post it in the issues section of GitHub and we'll fix it as soon as we can. Thanks for helping. https://github.com/strangerstudios/pmpro-user-pages/issues
+* Please post it in the issues section of GitHub and we'll fix it as soon as we can. Thanks for helping. https://github.com/strangerstudios/pmpro-user-pages/issues
 
 ## Changelog
-= .3 =
+.3
 * Added a redirect away from the parent page for non-admins and a list of user pages for admins
 * Fixed bug where incorrect URL might show up on the confirmation page.
 * Added pmpro_user_page_postdata and pmpro_user_page_purchase_postdata to adjust the user pages that are created at checkout.
 
-= .2 =
+.2
 * Added pre_get_posts filter to keep user pages out of searches, etc.
 * The main user page will now show a list of sub pages.
 
-= .1 =
+.1
 * This is the initial version of the plugin.
