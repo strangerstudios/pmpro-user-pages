@@ -23,6 +23,9 @@ This plugin currently requires Paid Memberships Pro.
 Please post it in the issues section of GitHub and we'll fix it as soon as we can. Thanks for helping. https://github.com/strangerstudios/pmpro-user-pages/issues
 
 == Changelog ==
+= .3.1 =
+* Added PMPROUP_LEVELS constant to pass a comma-separated list of level ids to create user pages for.
+
 = .3 =
 * Added a redirect away from the parent page for non-admins and a list of user pages for admins
 * Fixed bug where incorrect URL might show up on the confirmation page.

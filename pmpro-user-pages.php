@@ -3,7 +3,7 @@
 Plugin Name: PMPro User Pages
 Plugin URI: http://www.paidmembershipspro.com/pmpro-user-pages/
 Description: When a user signs up, create a page for them that only they (and admins) have access to.
-Version: .3
+Version: .3.1
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
 
@@ -12,8 +12,8 @@ To setup:
 	1. Create a top level page to store the user pages, e.g. "Members".
 	2. Set the value PMPROUP_PARENT_PAGE_ID to the ID of that page below.
 */
-
-define("PMPROUP_PARENT_PAGE_ID", 2270);
+//define("PMPROUP_PARENT_PAGE_ID", 1);		//id of the parent page
+//define("PMPROUP_LEVELS", '1,2');			//comma-separated list of level ids to create user pages for
 
 function pmproup_pmpro_after_checkout($user_id)
 {
@@ -25,47 +25,50 @@ function pmproup_pmpro_after_checkout($user_id)
 	//get the user's level
 	$level = pmpro_getMembershipLevelForUser($user_id);
 	
-	//do we have a page for this user yet?
-	$user_page_id = get_user_meta($user_id, "pmproup_user_page", true);	
-	if(!$user_page_id)
+	if(in_array($level->ID, explode(',',PMPROUP_LEVELS)))
 	{
-		//need to create it
-		$postdata = array(		 		  
-		  'post_author' => $user_id,
-		  'post_content' => "Pages for your purchases will be shown below.",		  
-		  'post_name' => $user->user_login,
-		  'post_parent' => PMPROUP_PARENT_PAGE_ID,		  
-		  'post_status' => "publish",
-		  'post_title' => $user->display_name,
-		  'post_type' => "page"		  
-		); 
-		
-		$postdata = apply_filters("pmpro_user_page_postdata", $postdata, $user, $level);
-		
-		$user_page_id = wp_insert_post($postdata);
+		//do we have a page for this user yet?
+		$user_page_id = get_user_meta($user_id, "pmproup_user_page", true);	
+		if(!$user_page_id)
+		{
+			//need to create it
+			$postdata = array(		 		  
+			  'post_author' => $user_id,
+			  'post_content' => "Pages for your purchases will be shown below.",		  
+			  'post_name' => $user->user_login,
+			  'post_parent' => PMPROUP_PARENT_PAGE_ID,		  
+			  'post_status' => "publish",
+			  'post_title' => $user->display_name,
+			  'post_type' => "page"		  
+			); 
+			
+			$postdata = apply_filters("pmpro_user_page_postdata", $postdata, $user, $level);
+			
+			$user_page_id = wp_insert_post($postdata);
+			
+			if($user_page_id)
+			{
+				//add meta
+				update_user_meta($user_id, "pmproup_user_page", $user_page_id);
+			}		
+		}
 		
 		if($user_page_id)
 		{
-			//add meta
-			update_user_meta($user_id, "pmproup_user_page", $user_page_id);
-		}		
-	}
-	
-	if($user_page_id)
-	{
-		//create a new page for this order		
-		$postdata = array(		 		  
-		  'post_author' => $user_id,
-		  'post_content' => "Thank you for your purchase. This page will be updated soon with updates on your order.",		  		 
-		  'post_parent' => $user_page_id,		  
-		  'post_status' => "publish",
-		  'post_title' => $level->name,
-		  'post_type' => "page"		  
-		);  
-		
-		$postdata = apply_filters("pmpro_user_page_purchase_postdata", $postdata, $user, $level);
-		
-		$post_id = wp_insert_post($postdata);				
+			//create a new page for this order		
+			$postdata = array(		 		  
+			  'post_author' => $user_id,
+			  'post_content' => "Thank you for your purchase. This page will be updated soon with updates on your order.",		  		 
+			  'post_parent' => $user_page_id,		  
+			  'post_status' => "publish",
+			  'post_title' => $level->name,
+			  'post_type' => "page"	  
+			);  
+			
+			$postdata = apply_filters("pmpro_user_page_purchase_postdata", $postdata, $user, $level);
+			
+			$post_id = wp_insert_post($postdata);				
+		}
 	}
 }
 add_action("pmpro_after_checkout", "pmproup_pmpro_after_checkout");
