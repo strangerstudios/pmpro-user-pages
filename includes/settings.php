@@ -25,7 +25,7 @@ function pmproup_getOptions()
 		if(defined('PMPROUP_LEVELS'))
 			$options['levels'] = explode(PMPROUP_LEVELS);
 		
-		update_options("pmpro_user_pages", $options);
+		update_option("pmpro_user_pages", $options);
 	}
 	
 	return $options;
