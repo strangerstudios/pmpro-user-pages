@@ -284,11 +284,11 @@ function pmproup_pre_get_posts($query)
 		//combine the top level and sub pages
 		global $all_pmpro_user_page_ids;	
 		$all_pmpro_user_page_ids = array_merge($main_user_page_ids, $user_page_ids);
-	}	
-		
-	//add user page ids to the post__not_in query var
-	$query->set('post__not_in', array_merge($query->query_vars['post__not_in'], $all_pmpro_user_page_ids));	
-			
+	
+		//add user page ids to the post__not_in query var
+		$query->set('post__not_in', array_merge($query->query_vars['post__not_in'], $all_pmpro_user_page_ids));
+	}
+	
 	return $query;
 }
 add_filter("pre_get_posts", "pmproup_pre_get_posts");
