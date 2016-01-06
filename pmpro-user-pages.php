@@ -3,7 +3,7 @@
 Plugin Name: Paid Memberships Pro - User Pages Add On
 Plugin URI: http://www.paidmembershipspro.com/pmpro-user-pages/
 Description: When a user signs up, create a page for them that only they (and admins) have access to.
-Version: .5.1
+Version: .5.2
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
 
@@ -171,7 +171,7 @@ function pmproup_parent_page_content($content)
 		if(current_user_can("manage_options"))		
 		{
 			//alright, let's show the page list at the end of the_content			
-			$users = $wpdb->get_results("SELECT u.display_name, um.meta_value FROM $wpdb->usermeta um LEFT JOIN $wpdb->users u ON um.user_id = u.ID WHERE um.meta_key = 'pmproup_user_page' GROUP BY um.user_id");
+			$users = $wpdb->get_results("SELECT u.display_name, um.meta_value FROM $wpdb->usermeta um LEFT JOIN $wpdb->users u ON um.user_id = u.ID WHERE um.meta_key = 'pmproup_user_page' AND u.ID IS NOT NULL GROUP BY um.user_id");
 			if(!empty($users))
 			{
 				$content .= "\n<ul class='user_page_list'>";
@@ -300,7 +300,7 @@ function pmproup_plugin_row_meta($links, $file) {
 	if(strpos($file, 'pmpro-user-pages.php') !== false)
 	{
 		$new_links = array(
-			'<a href="' . esc_url('http://www.paidmembershipspro.com/add-ons/plugins-on-github/pmpro-user-pages/')  . '" title="' . esc_attr( __( 'View Documentation', 'pmpro' ) ) . '">' . __( 'Docs', 'pmpro' ) . '</a>',
+			'<a href="' . esc_url('http://www.paidmembershipspro.com/add-ons/plus-add-ons/pmpro-user-pages/')  . '" title="' . esc_attr( __( 'View Documentation', 'pmpro' ) ) . '">' . __( 'Docs', 'pmpro' ) . '</a>',
 			'<a href="' . esc_url('http://paidmembershipspro.com/support/') . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro' ) ) . '">' . __( 'Support', 'pmpro' ) . '</a>',
 		);
 		$links = array_merge($links, $new_links);
