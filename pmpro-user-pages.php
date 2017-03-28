@@ -3,7 +3,7 @@
 Plugin Name: Paid Memberships Pro - User Pages Add On
 Plugin URI: http://www.paidmembershipspro.com/pmpro-user-pages/
 Description: When a user signs up, create a page for them that only they (and admins) have access to.
-Version: .5.2
+Version: .5.3
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
 
@@ -143,7 +143,7 @@ add_action("the_content", "pmproup_add_user_pages_below_the_content");
 //redirect non admins away from parent page
 function pmproup_wp_parent_page()
 {
-	global $wpdb, $post;	
+	global $wpdb, $post, $current_user;	
 	
 	$options = pmproup_getOptions();
 	
@@ -151,9 +151,16 @@ function pmproup_wp_parent_page()
 	{
 		if(!current_user_can("manage_options"))		
 		{
-			//redirect away
-			wp_redirect(home_url());
-			exit;
+			$user_page_id = get_user_meta($current_user->ID, "pmproup_user_page", true);
+			if(!empty($user_page_id)) {
+				//redirect to the user's user page
+				wp_redirect(get_permalink($user_page_id));
+				exit;
+			} else { 
+				//redirect away
+				wp_redirect(home_url());
+				exit;
+			}
 		}
 	}
 }
