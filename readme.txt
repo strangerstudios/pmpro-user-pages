@@ -1,9 +1,9 @@
 === Paid Memberships Pro - User Pages Add On ===
 Contributors: strangerstudios
 Tags: paid memberships pro, pmpro, membership, user pages
-Requires at least: 3.5
-Tested up to: 4.3
-Stable tag: .5.3
+Requires at least: 4
+Tested up to: 4.9.2
+Stable tag: .6
 
 When users checkout from a PMPro registration page, a page is created for them that only that user and WP admins will have access to.
 
@@ -24,6 +24,10 @@ This plugin currently requires Paid Memberships Pro.
 Please post it in the issues section of GitHub and we'll fix it as soon as we can. Thanks for helping. https://github.com/strangerstudios/pmpro-user-pages/issues
 
 == Changelog ==
+= .6 =
+* BUG FIX/ENHANCEMENT: Now adding user page on pmpro_after_change_membership_level function call instead of pmpro_after_checkout. If you add a member manually, they will have a User Page generated.
+* BUG FIX: Fixed warning when hiding user pages from searches.
+
 = .5.3 =
 * ENHANCEMENT: Now redirecting the PMPROUP_PARENT_PAGE_ID to the user page if available, else redirect to the homepage.
 
