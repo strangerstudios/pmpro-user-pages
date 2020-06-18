@@ -34,9 +34,8 @@ function pmproup_pmpro_after_checkout($user_id)
 	if(in_array($level->ID, $options['levels']))
 	{
 		//do we have a page for this user yet?
-		$user_page_id = get_user_meta($user_id, "pmproup_user_page", true);	
-		if(!$user_page_id)
-		{
+		$user_page_id = pmproup_get_page_for_user( $user_id );
+		if( empty( $user_page_id ) ) {
 			//need to create it
 			$postdata = array(		 		  
 			  'post_author' => $user_id,
@@ -52,15 +51,13 @@ function pmproup_pmpro_after_checkout($user_id)
 			
 			$user_page_id = wp_insert_post($postdata);
 			
-			if($user_page_id)
-			{
+			if($user_page_id) {
 				//add meta
 				update_user_meta($user_id, "pmproup_user_page", $user_page_id);
 			}		
 		}
 		
-		if($user_page_id)
-		{
+		if( ! empty( $user_page_id ) ) {
 			//create a new page for this order		
 			$postdata = array(		 		  
 			  'post_author' => $user_id,
@@ -98,15 +95,12 @@ function pmproup_pmpro_member_links_top()
 	global $current_user;
 	if(!empty($current_user->ID))
 	{
-		$user_page_id = get_user_meta($current_user->ID, "pmproup_user_page", true);
-		if($user_page_id)
-		{
+		$user_page_id = pmproup_get_page_for_user( $current_user->ID );
+		if ( ! empty( $user_page_id ) ) {
 			//get children
 			$pages = $wpdb->get_results("SELECT ID, post_title, UNIX_TIMESTAMP(post_date) as post_date FROM $wpdb->posts WHERE post_parent = '" . $user_page_id . "' AND post_status = 'publish'");
-			if(!empty($pages))
-			{
-				foreach($pages as $page)
-				{
+			if(!empty($pages)) {
+				foreach($pages as $page) {
 				?>
 					<li><a href="<?php echo get_permalink($page->ID); ?>"><?php echo $page->post_title; ?> (<?php echo date("m/d/Y", $page->post_date)?>)</a></li>
 				<?php
@@ -129,16 +123,13 @@ function pmproup_add_user_pages_below_the_content($content)
 		if(empty($up_user))
 			return $content;
 		
-		$user_page_id = get_user_meta($up_user->ID, "pmproup_user_page", true);
-		if($user_page_id && $post->ID == $user_page_id)
-		{
+		$user_page_id = pmproup_get_page_for_user( $up_user->ID );
+		if( ! empty( $user_page_id ) && $post->ID == $user_page_id) {
 			//alright, let's show the page list at the end of the_content			
 			$pages = $wpdb->get_results("SELECT ID, post_title, UNIX_TIMESTAMP(post_date) as post_date FROM $wpdb->posts WHERE post_parent = '" . $user_page_id . "' AND post_status = 'publish'");
-			if(!empty($pages))
-			{
+			if(!empty($pages)) {
 				$content .= "\n<ul class='user_page_list'>";
-				foreach($pages as $page)
-				{
+				foreach($pages as $page) {
 					$content .= '<li><a href="' . get_permalink($page->ID) . '">' . $page->post_title . ' (' . date("m/d/Y", $page->post_date) . ')</a></li>';			
 				}
 				$content .= "\n</ul>";
@@ -161,7 +152,7 @@ function pmproup_wp_parent_page()
 	{
 		if(!current_user_can("manage_options"))		
 		{
-			$user_page_id = get_user_meta($current_user->ID, "pmproup_user_page", true);
+			$user_page_id = pmproup_get_page_for_user( $current_user->ID );
 			if(!empty($user_page_id)) {
 				//redirect to the user's user page
 				wp_redirect(get_permalink($user_page_id));
@@ -249,10 +240,9 @@ function pmproup_pmpro_confirmation_message($message)
 	if(empty($current_user->ID))
 		return $message;
 	
-	$user_page_id = get_user_meta($current_user->ID, "pmproup_user_page", true);
+	$user_page_id = pmproup_get_page_for_user( $current_user->ID );
 		
-	if(!empty($user_page_id))
-	{
+	if(!empty($user_page_id)){
 		//get the last page created for them
 		$lastpage = $wpdb->get_row("SELECT ID, post_title FROM $wpdb->posts WHERE post_type = 'page' AND post_parent = '" . $user_page_id . "' ORDER BY ID DESC LIMIT 1");
 		
@@ -309,6 +299,34 @@ function pmproup_pre_get_posts($query)
 	return $query;
 }
 add_filter("pre_get_posts", "pmproup_pre_get_posts");
+
+/**
+ * Get the post_id for a user's page.
+ *
+ * @since 1.0
+ *
+ * @param int|null $user_id to get page for.
+ * @return int|null
+ */
+function pmproup_get_page_for_user( $user_id = null ) {
+	// Get current user's id if none passed.
+	if ( empty( $user_id ) ) {
+		$user_id = get_current_user_id();
+	}
+
+	// Return if no user_id passed and user not logged in.
+	if ( empty( $user_id ) ) {
+		return null;
+	}
+
+	$user_page_id = get_user_meta($user_id, "pmproup_user_page", true);
+	if ( empty( $user_page_id ) || 'publish' != get_post_status ( $user_page_id ) ) {
+		// Return if user does not have a page or if page is not published.
+		return null;
+	}
+	// Return the user's page.
+	return $user_page_id;
+}
 
 /*
 Function to add links to the plugin row meta
