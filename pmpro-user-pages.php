@@ -108,7 +108,7 @@ function pmproup_pmpro_member_links_top()
 				foreach($pages as $page)
 				{
 				?>
-					<li><a href="<?php echo get_permalink($page->ID); ?>"><?php echo $page->post_title; ?> (<?php echo date("m/d/Y", $page->post_date)?>)</a></li>
+					<li><a href="<?php echo get_permalink($page->ID); ?>"><?php echo $page->post_title; ?> <span class="pmpro_userpage_date">(<?php echo date("m/d/Y", $page->post_date)?>)</span></a></li>
 				<?php
 				}
 			}
@@ -139,7 +139,7 @@ function pmproup_add_user_pages_below_the_content($content)
 				$content .= "\n<ul class='user_page_list'>";
 				foreach($pages as $page)
 				{
-					$content .= '<li><a href="' . get_permalink($page->ID) . '">' . $page->post_title . ' (' . date("m/d/Y", $page->post_date) . ')</a></li>';			
+					$content .= '<li><a href="' . get_permalink($page->ID) . '">' . $page->post_title . ' <span class="pmpro_userpage_date">(' . date("m/d/Y", $page->post_date) . ')</span></a></li>';			
 				}
 				$content .= "\n</ul>";
 			}
