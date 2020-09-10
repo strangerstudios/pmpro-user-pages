@@ -236,6 +236,9 @@ function pmproup_template_redirect()
 		{
 			wp_redirect(home_url());
 			exit;
+		} elseif( apply_filters('pmproup_require_level_for_page', false ) && !pmpro_hasMembershipLevel() ) {
+			wp_redirect(home_url());
+			exit;
 		}
 	}
 }
