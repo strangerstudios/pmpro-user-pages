@@ -3,7 +3,7 @@
 Plugin Name: Paid Memberships Pro - User Pages Add On
 Plugin URI: http://www.paidmembershipspro.com/pmpro-user-pages/
 Description: When a user signs up, create a page for them that only they (and admins) have access to.
-Version: .5.3
+Version: .6
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
 
@@ -77,7 +77,17 @@ function pmproup_pmpro_after_checkout($user_id)
 		}
 	}
 }
-add_action("pmpro_after_checkout", "pmproup_pmpro_after_checkout");
+//add_action("pmpro_after_checkout", "pmproup_pmpro_after_checkout");
+
+/*
+	Instead of hooking into pmpro_after_checkout,
+	let's hook into pmpro_after_change_membership_level
+	and then call that old function.
+*/
+function pmproup_pmpro_after_change_membership_level($level_id, $user_id) {
+	return pmproup_pmpro_after_checkout($user_id);
+}
+add_action("pmpro_after_change_membership_level", "pmproup_pmpro_after_change_membership_level", 10, 2);
 
 //show the user pages on the account page
 function pmproup_pmpro_member_links_top()
@@ -291,11 +301,11 @@ function pmproup_pre_get_posts($query)
 		//combine the top level and sub pages
 		global $all_pmpro_user_page_ids;	
 		$all_pmpro_user_page_ids = array_merge($main_user_page_ids, $user_page_ids);
-	}	
-		
-	//add user page ids to the post__not_in query var
-	$query->set('post__not_in', array_merge($query->query_vars['post__not_in'], $all_pmpro_user_page_ids));	
-			
+	
+		//add user page ids to the post__not_in query var
+		$query->set('post__not_in', array_merge($query->query_vars['post__not_in'], $all_pmpro_user_page_ids));
+	}
+	
 	return $query;
 }
 add_filter("pre_get_posts", "pmproup_pre_get_posts");
