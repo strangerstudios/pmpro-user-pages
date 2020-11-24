@@ -1,0 +1,136 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Paid Memberships Pro - User Pages Add On\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-11-24 13:13+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.4.6; wp-5.5.3"
+
+#: pmpro-user-pages.php:328
+msgid "Docs"
+msgstr ""
+
+#: includes/settings.php:194
+msgid "Generate User Pages for existing members."
+msgstr ""
+
+#. URI of the plugin
+msgid "http://www.paidmembershipspro.com/pmpro-user-pages/"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "http://www.strangerstudios.com"
+msgstr ""
+
+#: includes/settings.php:184
+msgid ""
+"If you have existing members from before the User Pages addon was activated, "
+"you can <strong>check this box and click the Save Settings button to "
+"generate user pages for existing members</strong>."
+msgstr ""
+
+#: includes/settings.php:184
+msgid ""
+"Only members in the above selected levels will have user pages created. "
+"Links to the User Pages will show up in the Member Links section of each "
+"user's membership account page. Users will not otherwise be notified of the "
+"creation of this page."
+msgstr ""
+
+#: includes/settings.php:157
+msgid ""
+"Only members of the levels specified below will have user pages created for "
+"them. Hold the Control button (or Command button on Macs) and click to "
+"select/deselect multiple levels."
+msgstr ""
+
+#: pmpro-user-pages.php:51
+msgid "Pages for your purchases will be shown below."
+msgstr ""
+
+#. Name of the plugin
+msgid "Paid Memberships Pro - User Pages Add On"
+msgstr ""
+
+#: includes/settings.php:129
+msgid ""
+"PMPROUP_PARENT_PAGE_ID and PMPROUP_LEVELS seem to be defined already... "
+"maybe in your wp-config.php. These constants are no longer needed and you "
+"should find their definitions and delete them. The settings here will "
+"control the User Pages addon."
+msgstr ""
+
+#: includes/settings.php:203
+msgid "Save Settings"
+msgstr ""
+
+#. Author of the plugin
+msgid "Stranger Studios"
+msgstr ""
+
+#: pmpro-user-pages.php:329
+msgid "Support"
+msgstr ""
+
+#: pmpro-user-pages.php:75
+msgid ""
+"Thank you for your purchase. This page will be updated soon with updates on "
+"your order."
+msgstr ""
+
+#: includes/settings.php:138
+msgid ""
+"The <strong>Top Level Page</strong> is the WordPress page under which all "
+"user pages will be created. You can create a page called \"User Pages\" and "
+"then choose it from the dropdown below."
+msgstr ""
+
+#: includes/settings.php:134
+msgid ""
+"The User Pages addon can be used to create a \"user page\" for new members "
+"of specific levels. The user pages will only be visible to site admins and "
+"the user it was created for."
+msgstr ""
+
+#: includes/settings.php:144
+msgid "Top Level Page"
+msgstr ""
+
+#: includes/settings.php:54
+msgid "User Pages"
+msgstr ""
+
+#: includes/settings.php:163
+msgid "User Pages Levels"
+msgstr ""
+
+#: includes/settings.php:123
+msgid "User Pages Settings"
+msgstr ""
+
+#: pmpro-user-pages.php:328
+msgid "View Documentation"
+msgstr ""
+
+#: pmpro-user-pages.php:329
+msgid "Visit Customer Support Forum"
+msgstr ""
+
+#: includes/settings.php:129
+msgid "Warning:"
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"When a user signs up, create a page for them that only they (and admins) "
+"have access to."
+msgstr ""
