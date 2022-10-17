@@ -18,25 +18,43 @@ require_once(dirname(__FILE__) . '/includes/settings.php');	//settings page for 
 
 /*
 	Create user pages at checkout
+
+	@deprecated TBD
 */
 function pmproup_pmpro_after_checkout($user_id)
 {
-	global $wpdb;
-	
-	$options = pmproup_getOptions();
-	
+	// Deprecation warning.
+	_deprecated_function( __FUNCTION__, 'pmproup_pmpro_after_checkout', 'TBD', 'pmproup_pmpro_after_change_membership_level' );
+
 	//user info
 	$user = get_userdata($user_id);
 	
 	//get the user's level
 	$level = pmpro_getMembershipLevelForUser($user_id);
-	
-	if(in_array($level->ID, $options['levels']))
-	{
-		//do we have a page for this user yet?
-		$user_page_id = get_user_meta($user_id, "pmproup_user_page", true);	
-		if(!$user_page_id)
-		{
+
+	if ( ! empty( $level ) && ! empty( $level->ID ) ) {
+		pmproup_pmpro_after_change_membership_level( $level->ID, $user_id );
+	}
+}
+
+/**
+ * When a user recieves a membership level, create a user page for them.
+ *
+ * @param int $level_id The ID of the level the user just received.
+ * @param int $user_id The ID of the user who just received the level.
+ */
+function pmproup_pmpro_after_change_membership_level( $level_id, $user_id ) {	
+	$options = pmproup_getOptions();
+	if ( ! empty( $level_id ) && in_array( $level_id, $options['levels']) ) {
+		// Get user information.
+		$user = get_userdata( $user_id );
+
+		// Get level information.
+		$level = pmpro_getSpecificMembershipLevelForUser( $user_id, $level_id );
+
+		// Make sure that we have a page for this user.
+		$user_page_id = get_user_meta($user_id, 'pmproup_user_page', true);	
+		if ( ! $user_page_id ) {
 			//need to create it
 			$postdata = array(		 		  
 			  'post_author' => $user_id,
@@ -48,46 +66,34 @@ function pmproup_pmpro_after_checkout($user_id)
 			  'post_type' => "page"		  
 			); 
 			
-			$postdata = apply_filters("pmpro_user_page_postdata", $postdata, $user, $level);
+			$postdata = apply_filters( 'pmpro_user_page_postdata', $postdata, $user, $level );
 			
-			$user_page_id = wp_insert_post($postdata);
+			$user_page_id = wp_insert_post( $postdata );
 			
-			if($user_page_id)
-			{
-				//add meta
-				update_user_meta($user_id, "pmproup_user_page", $user_page_id);
+			// Update user meta.
+			if ( $user_page_id ) {
+				update_user_meta( $user_id, 'pmproup_user_page', $user_page_id );
 			}		
 		}
-		
-		if($user_page_id)
-		{
-			//create a new page for this order		
+
+		// Create a new sub-page for this new level.
+		if ( $user_page_id ) {
 			$postdata = array(		 		  
 			  'post_author' => $user_id,
-			  'post_content' => "Thank you for your purchase. This page will be updated soon with updates on your order.",		  		 
+			  'post_content' => 'Thank you for your purchase. This page will be updated soon with updates on your order.',		  		 
 			  'post_parent' => $user_page_id,		  
-			  'post_status' => "publish",
+			  'post_status' => 'publish',
 			  'post_title' => $level->name,
-			  'post_type' => "page"	  
+			  'post_type' => 'page'	  
 			);  
 			
-			$postdata = apply_filters("pmpro_user_page_purchase_postdata", $postdata, $user, $level);
+			$postdata = apply_filters( 'pmpro_user_page_purchase_postdata', $postdata, $user, $level );
 			
-			$post_id = wp_insert_post($postdata);				
+			$post_id = wp_insert_post( $postdata );				
 		}
 	}
 }
-//add_action("pmpro_after_checkout", "pmproup_pmpro_after_checkout");
-
-/*
-	Instead of hooking into pmpro_after_checkout,
-	let's hook into pmpro_after_change_membership_level
-	and then call that old function.
-*/
-function pmproup_pmpro_after_change_membership_level($level_id, $user_id) {
-	return pmproup_pmpro_after_checkout($user_id);
-}
-add_action("pmpro_after_change_membership_level", "pmproup_pmpro_after_change_membership_level", 10, 2);
+add_action( 'pmpro_after_change_membership_level', 'pmproup_pmpro_after_change_membership_level', 10, 2 );
 
 //show the user pages on the account page
 function pmproup_pmpro_member_links_top()

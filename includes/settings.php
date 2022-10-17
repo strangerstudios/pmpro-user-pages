@@ -91,7 +91,7 @@ function pmproup_adminpage()
 		{
 			//find all members
 			$member_ids = $wpdb->get_col("SELECT user_id FROM $wpdb->pmpro_memberships_users WHERE status = 'active' AND membership_id IN('" . implode("','", $levels) . "')");
-			
+
 			//loop through
 			if(!empty($member_ids))
 			{
@@ -103,12 +103,15 @@ function pmproup_adminpage()
 					//check for user page
 					$user_page_id = get_user_meta($member_id, "pmproup_user_page", true);
 					
-					//no page, create one
+					//no page, create one for each of their levels.
 					if(empty($user_page_id))
 					{
 						$count++;
 						echo ". ";
-						pmproup_pmpro_after_checkout($member_id);
+						$user_levels = pmpro_getMembershipLevelsForUser( $member_id );
+						foreach ( $user_levels as $user_level ) {
+							pmproup_pmpro_after_change_membership_level( $user_level->id, $member_id );
+						}
 					}
 				}
 				
