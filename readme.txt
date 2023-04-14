@@ -2,7 +2,7 @@
 Contributors: strangerstudios
 Tags: paid memberships pro, pmpro, membership, user pages
 Requires at least: 4
-Tested up to: 4.9.2
+Tested up to: 6.2
 Stable tag: .6
 
 When users checkout from a PMPro registration page, a page is created for them that only that user and WP admins will have access to.
