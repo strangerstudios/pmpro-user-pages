@@ -313,7 +313,7 @@ add_filter("pre_get_posts", "pmproup_pre_get_posts");
 /*
 Function to add links to the plugin row meta
 */
-function pmproup_plugin_row_meta($links, $file) {
+function pmpro_user_pages_plugin_row_meta($links, $file) {
 	if(strpos($file, 'pmpro-user-pages.php') !== false)
 	{
 		$new_links = array(
@@ -324,4 +324,4 @@ function pmproup_plugin_row_meta($links, $file) {
 	}
 	return $links;
 }
-add_filter('plugin_row_meta', 'pmproup_plugin_row_meta', 10, 2);
+add_filter('plugin_row_meta', 'pmpro_user_pages_plugin_row_meta', 10, 2);
