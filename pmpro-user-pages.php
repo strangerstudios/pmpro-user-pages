@@ -6,12 +6,20 @@ Description: When a user signs up, create a page for them that only they (and ad
 Version: .6
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
+Text Domain: pmpro-user-pages
+Domain Path: /languages
 
 To setup:
 
 	1. Create a top level page to store the user pages, e.g. "Members".
 	2. Navigate to Memberships --> User Pages and complete the settings.
 */
+
+// load text domain
+function pmpro_user_pages_load_plugin_text_domain() {
+	load_plugin_textdomain( 'pmpro-user-pages', false, basename( dirname( __FILE__ ) ) . '/languages' ); 
+}
+add_action( 'plugins_loaded', 'pmpro_user_pages_load_plugin_text_domain');
 
 //includes
 require_once(dirname(__FILE__) . '/includes/settings.php');	//settings page for dashboard
@@ -39,7 +47,7 @@ function pmproup_pmpro_after_checkout($user_id)
 			//need to create it
 			$postdata = array(		 		  
 			  'post_author' => $user_id,
-			  'post_content' => "Pages for your purchases will be shown below.",		  
+			  'post_content' => __( 'Pages for your purchases will be shown below.', 'pmpro-user-pages'),		  
 			  'post_name' => $user->user_login,
 			  'post_parent' => $options['parent_page'],		  
 			  'post_status' => "publish",
@@ -61,7 +69,7 @@ function pmproup_pmpro_after_checkout($user_id)
 			//create a new page for this order		
 			$postdata = array(		 		  
 			  'post_author' => $user_id,
-			  'post_content' => "Thank you for your purchase. This page will be updated soon with updates on your order.",		  		 
+			  'post_content' => __( 'Thank you for your purchase. This page will be updated soon with updates on your order.', 'pmpro-user-pages'),		  
 			  'post_parent' => $user_page_id,		  
 			  'post_status' => "publish",
 			  'post_title' => $level->name,
@@ -349,8 +357,8 @@ function pmproup_plugin_row_meta($links, $file) {
 	if(strpos($file, 'pmpro-user-pages.php') !== false)
 	{
 		$new_links = array(
-			'<a href="' . esc_url('http://www.paidmembershipspro.com/add-ons/plus-add-ons/pmpro-user-pages/')  . '" title="' . esc_attr( __( 'View Documentation', 'pmpro' ) ) . '">' . __( 'Docs', 'pmpro' ) . '</a>',
-			'<a href="' . esc_url('http://paidmembershipspro.com/support/') . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro' ) ) . '">' . __( 'Support', 'pmpro' ) . '</a>',
+			'<a href="' . esc_url('http://www.paidmembershipspro.com/add-ons/plus-add-ons/pmpro-user-pages/')  . '" title="' . esc_attr( __( 'View Documentation', 'pmpro-user-pages' ) ) . '">' . __( 'Docs', 'pmpro-user-pages' ) . '</a>',
+			'<a href="' . esc_url('http://paidmembershipspro.com/support/') . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro-user-pages' ) ) . '">' . __( 'Support', 'pmpro-user-pages' ) . '</a>',
 		);
 		$links = array_merge($links, $new_links);
 	}
