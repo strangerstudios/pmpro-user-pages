@@ -320,11 +320,24 @@ function pmproup_get_page_for_user( $user_id = null ) {
 		return null;
 	}
 
+	// Return if user does not have a page.
 	$user_page_id = get_user_meta($user_id, "pmproup_user_page", true);
-	if ( empty( $user_page_id ) || 'publish' != get_post_status ( $user_page_id ) ) {
-		// Return if user does not have a page or if page is not published.
+	if ( empty( $user_page_id ) ) {
 		return null;
 	}
+
+	// If the page does not exist, remove the meta and return null.
+	$post = get_post( $user_page_id );
+	if ( empty( $post ) ) {
+		delete_user_meta( $user_id, "pmproup_user_page" );
+		return null;
+	}
+
+	// If the post is not in 'publish' status, return null.
+	if ( 'publish' != $post->post_status ) {
+		return null;
+	}
+
 	// Return the user's page.
 	return $user_page_id;
 }
