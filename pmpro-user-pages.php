@@ -6,12 +6,20 @@ Description: When a user signs up, create a page for them that only they (and ad
 Version: .6
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
+Text Domain: pmpro-user-pages
+Domain Path: /languages
 
 To setup:
 
 	1. Create a top level page to store the user pages, e.g. "Members".
 	2. Navigate to Memberships --> User Pages and complete the settings.
 */
+
+// load text domain
+function pmpro_user_pages_load_plugin_text_domain() {
+	load_plugin_textdomain( 'pmpro-user-pages', false, basename( dirname( __FILE__ ) ) . '/languages' ); 
+}
+add_action( 'plugins_loaded', 'pmpro_user_pages_load_plugin_text_domain');
 
 //includes
 require_once(dirname(__FILE__) . '/includes/settings.php');	//settings page for dashboard
@@ -53,12 +61,12 @@ function pmproup_pmpro_after_change_membership_level( $level_id, $user_id ) {
 		$level = pmpro_getSpecificMembershipLevelForUser( $user_id, $level_id );
 
 		// Make sure that we have a page for this user.
-		$user_page_id = get_user_meta($user_id, 'pmproup_user_page', true);	
-		if ( ! $user_page_id ) {
+		$user_page_id = pmproup_get_page_for_user( $user_id );
+		if( empty( $user_page_id ) ) {
 			//need to create it
 			$postdata = array(		 		  
 			  'post_author' => $user_id,
-			  'post_content' => "Pages for your purchases will be shown below.",		  
+			  'post_content' => __( 'Pages for your purchases will be shown below.', 'pmpro-user-pages'),		  
 			  'post_name' => $user->user_login,
 			  'post_parent' => $options['parent_page'],		  
 			  'post_status' => "publish",
@@ -77,10 +85,10 @@ function pmproup_pmpro_after_change_membership_level( $level_id, $user_id ) {
 		}
 
 		// Create a new sub-page for this new level.
-		if ( $user_page_id ) {
+		if ( ! empty( $user_page_id ) {
 			$postdata = array(		 		  
 			  'post_author' => $user_id,
-			  'post_content' => 'Thank you for your purchase. This page will be updated soon with updates on your order.',		  		 
+			  post_content' => __( 'Thank you for your purchase. This page will be updated soon with updates on your order.', 'pmpro-user-pages'),  		 
 			  'post_parent' => $user_page_id,		  
 			  'post_status' => 'publish',
 			  'post_title' => $level->name,
@@ -104,17 +112,14 @@ function pmproup_pmpro_member_links_top()
 	global $current_user;
 	if(!empty($current_user->ID))
 	{
-		$user_page_id = get_user_meta($current_user->ID, "pmproup_user_page", true);
-		if($user_page_id)
-		{
+		$user_page_id = pmproup_get_page_for_user( $current_user->ID );
+		if ( ! empty( $user_page_id ) ) {
 			//get children
 			$pages = $wpdb->get_results("SELECT ID, post_title, UNIX_TIMESTAMP(post_date) as post_date FROM $wpdb->posts WHERE post_parent = '" . $user_page_id . "' AND post_status = 'publish'");
-			if(!empty($pages))
-			{
-				foreach($pages as $page)
-				{
+			if(!empty($pages)) {
+				foreach($pages as $page) {
 				?>
-					<li><a href="<?php echo get_permalink($page->ID); ?>"><?php echo $page->post_title; ?> (<?php echo date("m/d/Y", $page->post_date)?>)</a></li>
+					<li><a href="<?php echo get_permalink($page->ID); ?>"><?php echo $page->post_title; ?> <span class="pmpro_userpage_date">(<?php echo date("m/d/Y", $page->post_date)?>)</span></a></li>
 				<?php
 				}
 			}
@@ -135,17 +140,14 @@ function pmproup_add_user_pages_below_the_content($content)
 		if(empty($up_user))
 			return $content;
 		
-		$user_page_id = get_user_meta($up_user->ID, "pmproup_user_page", true);
-		if($user_page_id && $post->ID == $user_page_id)
-		{
+		$user_page_id = pmproup_get_page_for_user( $up_user->ID );
+		if( ! empty( $user_page_id ) && $post->ID == $user_page_id) {
 			//alright, let's show the page list at the end of the_content			
 			$pages = $wpdb->get_results("SELECT ID, post_title, UNIX_TIMESTAMP(post_date) as post_date FROM $wpdb->posts WHERE post_parent = '" . $user_page_id . "' AND post_status = 'publish'");
-			if(!empty($pages))
-			{
+			if(!empty($pages)) {
 				$content .= "\n<ul class='user_page_list'>";
-				foreach($pages as $page)
-				{
-					$content .= '<li><a href="' . get_permalink($page->ID) . '">' . $page->post_title . ' (' . date("m/d/Y", $page->post_date) . ')</a></li>';			
+				foreach($pages as $page) {
+					$content .= '<li><a href="' . get_permalink($page->ID) . '">' . $page->post_title . ' <span class="pmpro_userpage_date">(' . date("m/d/Y", $page->post_date) . ')</span></a></li>';			
 				}
 				$content .= "\n</ul>";
 			}
@@ -167,7 +169,7 @@ function pmproup_wp_parent_page()
 	{
 		if(!current_user_can("manage_options"))		
 		{
-			$user_page_id = get_user_meta($current_user->ID, "pmproup_user_page", true);
+			$user_page_id = pmproup_get_page_for_user( $current_user->ID );
 			if(!empty($user_page_id)) {
 				//redirect to the user's user page
 				wp_redirect(get_permalink($user_page_id));
@@ -255,10 +257,9 @@ function pmproup_pmpro_confirmation_message($message)
 	if(empty($current_user->ID))
 		return $message;
 	
-	$user_page_id = get_user_meta($current_user->ID, "pmproup_user_page", true);
+	$user_page_id = pmproup_get_page_for_user( $current_user->ID );
 		
-	if(!empty($user_page_id))
-	{
+	if(!empty($user_page_id)){
 		//get the last page created for them
 		$lastpage = $wpdb->get_row("SELECT ID, post_title FROM $wpdb->posts WHERE post_type = 'page' AND post_parent = '" . $user_page_id . "' ORDER BY ID DESC LIMIT 1");
 		
@@ -316,6 +317,48 @@ function pmproup_pre_get_posts($query)
 }
 add_filter("pre_get_posts", "pmproup_pre_get_posts");
 
+/**
+ * Get the post_id for a user's page.
+ *
+ * @since TBD
+
+ *
+ * @param int|null $user_id to get page for.
+ * @return int|null
+ */
+function pmproup_get_page_for_user( $user_id = null ) {
+	// Get current user's id if none passed.
+	if ( empty( $user_id ) ) {
+		$user_id = get_current_user_id();
+	}
+
+	// Return if no user_id passed and user not logged in.
+	if ( empty( $user_id ) ) {
+		return null;
+	}
+
+	// Return if user does not have a page.
+	$user_page_id = get_user_meta($user_id, "pmproup_user_page", true);
+	if ( empty( $user_page_id ) ) {
+		return null;
+	}
+
+	// If the page does not exist, remove the meta and return null.
+	$post = get_post( $user_page_id );
+	if ( empty( $post ) ) {
+		delete_user_meta( $user_id, "pmproup_user_page" );
+		return null;
+	}
+
+	// If the post is not in 'publish' status, return null.
+	if ( 'publish' != $post->post_status ) {
+		return null;
+	}
+
+	// Return the user's page.
+	return $user_page_id;
+}
+
 /*
 Function to add links to the plugin row meta
 */
@@ -323,8 +366,8 @@ function pmproup_plugin_row_meta($links, $file) {
 	if(strpos($file, 'pmpro-user-pages.php') !== false)
 	{
 		$new_links = array(
-			'<a href="' . esc_url('http://www.paidmembershipspro.com/add-ons/plus-add-ons/pmpro-user-pages/')  . '" title="' . esc_attr( __( 'View Documentation', 'pmpro' ) ) . '">' . __( 'Docs', 'pmpro' ) . '</a>',
-			'<a href="' . esc_url('http://paidmembershipspro.com/support/') . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro' ) ) . '">' . __( 'Support', 'pmpro' ) . '</a>',
+			'<a href="' . esc_url('http://www.paidmembershipspro.com/add-ons/plus-add-ons/pmpro-user-pages/')  . '" title="' . esc_attr( __( 'View Documentation', 'pmpro-user-pages' ) ) . '">' . __( 'Docs', 'pmpro-user-pages' ) . '</a>',
+			'<a href="' . esc_url('http://paidmembershipspro.com/support/') . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro-user-pages' ) ) . '">' . __( 'Support', 'pmpro-user-pages' ) . '</a>',
 		);
 		$links = array_merge($links, $new_links);
 	}

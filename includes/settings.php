@@ -51,7 +51,7 @@ function pmproup_admin_bar_menu()
 	$wp_admin_bar->add_menu( array(
 	'id' => 'pmpro-user-pages',
 	'parent' => 'paid-memberships-pro',
-	'title' => __( 'User Pages', 'pmpro'),
+	'title' => __( 'User Pages', 'pmpro-user-pages'),
 	'href' => get_admin_url(NULL, '/admin.php?page=pmpro-user-pages') ) );	
 }
 add_action('admin_bar_menu', 'pmproup_admin_bar_menu', 1000);
@@ -123,28 +123,28 @@ function pmproup_adminpage()
 	require_once(PMPRO_DIR . "/adminpages/admin_header.php");		
 	?>
 		<form action="" method="post" enctype="multipart/form-data"> 
-			<h2>User Pages Settings</h2>
+			<h2><?php _e('User Pages Settings', 'pmpro-user-pages'); ?></h2>
 		
 			<?php
 				if(defined('PMPROUP_PARENT_PAGE_ID') || defined('PMPROUP_LEVELS'))
 				{
 				?>
-				<div id="message" class="error"><p><strong>Warning:</strong> PMPROUP_PARENT_PAGE_ID and PMPROUP_LEVELS seem to be defined already... maybe in your wp-config.php. These constants are no longer needed and you should find their definitions and delete them. The settings here will control the User Pages addon.</p></div>
+				<div id="message" class="error"><p><strong><?php _e('Warning:', 'pmpro-user-pages'); ?></strong> <?php _e('PMPROUP_PARENT_PAGE_ID and PMPROUP_LEVELS seem to be defined already... maybe in your wp-config.php. These constants are no longer needed and you should find their definitions and delete them. The settings here will control the User Pages addon.', 'pmpro-user-pages'); ?></p></div>
 				<?php
 				}
 			?>
 		
-			<p>The User Pages addon can be used to create a "user page" for new members of specific levels. The user pages will only be visible to site admins and the user it was created for.</p>
+			<p><?php _e('The User Pages addon can be used to create a "user page" for new members of specific levels. The user pages will only be visible to site admins and the user it was created for.', 'pmpro-user-pages'); ?></p>
 			
 			<hr />
 			
-			<p>The <strong>Top Level Page</strong> is the WordPress page under which all user pages will be created. You can create a page called "User Pages" and then choose it from the dropdown below.</p>						
+			<p><?php _e('The <strong>Top Level Page</strong> is the WordPress page under which all user pages will be created. You can create a page called "User Pages" and then choose it from the dropdown below.', 'pmpro-user-pages'); ?></p>						
 		
 			<table class="form-table">
 			<tbody>				
 				<tr>
 					<th scope="row" valign="top">
-						<label for="parent_page"><?php _e('Top Level Page', 'pmpro');?>:</label>
+						<label for="parent_page"><?php _e('Top Level Page', 'pmpro-user-pages');?>:</label>
 					</th>
 					<td>
 						<?php
@@ -157,13 +157,13 @@ function pmproup_adminpage()
 			
 			<hr />
 			
-			<p>Only members of the levels specified below will have user pages created for them. Hold the Control button (or Command button on Macs) and click to select/deselect multiple levels.</p>
+			<p><?php _e('Only members of the levels specified below will have user pages created for them. Hold the Control button (or Command button on Macs) and click to select/deselect multiple levels.', 'pmpro-user-pages'); ?></p>
 			
 			<table class="form-table">
 			<tbody>				
 				<tr>
 					<th scope="row" valign="top">
-						<label for="levels"><?php _e('User Pages Levels', 'pmpro');?>:</label>
+						<label for="levels"><?php _e('User Pages Levels', 'pmpro-user-pages');?>:</label>
 					</th>
 					<td>
 						<select id="levels" name="levels[]" multiple="yes">
@@ -184,7 +184,7 @@ function pmproup_adminpage()
 			
 			<hr />
 						
-			<p>If you have existing members from before the User Pages addon was activated, you can <strong>check this box and click the Save Settings button to generate user pages for existing members</strong>. Only members in the above selected levels will have user pages created. Links to the User Pages will show up in the Member Links section of each user's membership account page. Users will not otherwise be notified of the creation of this page.</p>
+			<p><?php _e('If you have existing members from before the User Pages addon was activated, you can <strong>check this box and click the Save Settings button to generate user pages for existing members</strong>.', 'pmpro-user-pages'); ?> <?php _e("Only members in the above selected levels will have user pages created. Links to the User Pages will show up in the Member Links section of each user's membership account page. Users will not otherwise be notified of the creation of this page.", "pmpro-user-pages"); ?></p>
 			
 			<table class="form-table">
 			<tbody>				
@@ -194,7 +194,7 @@ function pmproup_adminpage()
 					</th>
 					<td>
 						<input type="checkbox" id="existing_members" name="existing_members" value="1" />
-						<label for="existing_members">Generate User Pages for existing members.</label>					
+						<label for="existing_members"><?php _e('Generate User Pages for existing members.', 'pmpro-user-pages'); ?></label>					
 					</td>
 				</tr>
 			</tbody>
@@ -203,7 +203,7 @@ function pmproup_adminpage()
 			<hr />
 			
 			<p class="submit">            
-				<input name="savesettings" type="submit" class="button button-primary" value="<?php _e('Save Settings', 'pmpro');?>" /> 		                			
+				<input name="savesettings" type="submit" class="button button-primary" value="<?php _e('Save Settings', 'pmpro-user-pages');?>" /> 		                			
 			</p>
 		</form>
 	<?php
