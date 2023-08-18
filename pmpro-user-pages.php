@@ -295,7 +295,7 @@ function pmproup_pre_get_posts($query)
 	$options = pmproup_getOptions();
 	
 	//don't fix anything on the admin side, and also let admins see everything
-	if(is_admin() || current_user_can("manage_options") || empty($options['parent_page']))
+	if(is_admin() || current_user_can("manage_options") || empty($options['parent_page']) || $query->is_singular())
 		return $query;
 	
 	//Using a global to cache the user page ids. If it is not set, we need to look them up. (Note we're ignoring posts where the current user is author.)
@@ -317,9 +317,9 @@ function pmproup_pre_get_posts($query)
 			$user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent IN (" . implode(",", $main_user_page_ids) . ")");	
 			
 		//combine the top level and sub pages
-		global $all_pmpro_user_page_ids;	
 		$all_pmpro_user_page_ids = array_merge($main_user_page_ids, $user_page_ids);
-	
+	}
+	if ( ! empty( $all_pmpro_user_page_ids ) ) {
 		//add user page ids to the post__not_in query var
 		$query->set('post__not_in', array_merge($query->query_vars['post__not_in'], $all_pmpro_user_page_ids));
 	}
