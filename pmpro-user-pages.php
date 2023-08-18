@@ -85,10 +85,10 @@ function pmproup_pmpro_after_change_membership_level( $level_id, $user_id ) {
 		}
 
 		// Create a new sub-page for this new level.
-		if ( ! empty( $user_page_id ) {
+		if ( ! empty( $user_page_id ) ) {
 			$postdata = array(		 		  
 			  'post_author' => $user_id,
-			  post_content' => __( 'Thank you for your purchase. This page will be updated soon with updates on your order.', 'pmpro-user-pages'),  		 
+			  'post_content' => __( 'Thank you for your purchase. This page will be updated soon with updates on your order.', 'pmpro-user-pages'),  		 
 			  'post_parent' => $user_page_id,		  
 			  'post_status' => 'publish',
 			  'post_title' => $level->name,
