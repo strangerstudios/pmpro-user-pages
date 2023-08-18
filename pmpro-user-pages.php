@@ -51,11 +51,14 @@ function pmproup_pmpro_after_checkout($user_id)
  * @param int $level_id The ID of the level the user just received.
  * @param int $user_id The ID of the user who just received the level.
  */
-function pmproup_pmpro_after_change_membership_level( $level_id, $user_id ) {	
+function pmproup_pmpro_after_change_membership_level( $level_id, $user_id ) {
 	$options = pmproup_getOptions();
 	if ( ! empty( $level_id ) && in_array( $level_id, $options['levels']) ) {
 		// Get user information.
 		$user = get_userdata( $user_id );
+		if ( empty( $user ) ) {
+			return;
+		}
 
 		// Get level information.
 		$level = pmpro_getSpecificMembershipLevelForUser( $user_id, $level_id );

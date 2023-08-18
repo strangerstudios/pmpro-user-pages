@@ -104,8 +104,7 @@ function pmproup_adminpage()
 					$user_page_id = get_user_meta($member_id, "pmproup_user_page", true);
 					
 					//no page, create one for each of their levels.
-					if(empty($user_page_id))
-					{
+					if ( empty( $user_page_id ) && ! empty( get_userdata( $member_id ) ) ) {
 						$count++;
 						echo ". ";
 						$user_levels = pmpro_getMembershipLevelsForUser( $member_id );
