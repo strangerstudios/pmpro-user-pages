@@ -205,41 +205,46 @@ function pmproup_parent_page_content($content)
 }
 add_filter("the_content", "pmproup_parent_page_content");
 
-//lock down a page that was created for a user
-function pmproup_template_redirect()
-{
+/**
+ * Lock down a page that was created for a user.
+ */
+function pmproup_template_redirect() {
 	global $post, $wpdb, $current_user;
 		
-	if(empty($post->ID))
+	if ( empty( $post->ID ) ) {
 		return;
-	
-	$ancestors = get_post_ancestors($post);
-	
-	//add current post ID to the array
-	if(empty($ancestors))
-		$ancestors = array($post->ID);
-	else
-		$ancestors[] = $post->ID;
-			
-	//no ancestors? must not be a user page then	
-	$page_user_id = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND meta_value IN(" . implode(",", $ancestors) . ") LIMIT 1");
-		
-	if(!empty($page_user_id))
-	{
-		//must be logged in
-		if(!$current_user->ID)
-		{
-			wp_redirect(home_url());
-			exit;
-		}
-		elseif($page_user_id != $current_user->ID && !current_user_can("manage_options"))
-		{
-			wp_redirect(home_url());
-			exit;
-		} elseif( apply_filters('pmproup_require_level_for_page', false ) && !pmpro_hasMembershipLevel() ) {
-			wp_redirect(home_url());
-			exit;
-		}
+	}
+
+	// Build an array of all related posts that could be user pages.
+	$pages_to_check = array_merge( get_post_ancestors( $post ), array( $post->ID ) );
+
+	// Check if any of the related posts are user pages.
+	$page_user_id = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND meta_value IN(" . implode(",", $pages_to_check) . ") LIMIT 1");
+
+	// If we are not on a user page, return.
+	if ( empty( $page_user_id ) ) {
+		return;
+	}
+
+	// We are now definitely on a user page. Check whether we should allow access for the current user or redirect.
+	// By default, only allow access if this is the current user's page or the user is an admin.
+	$allow_access = $page_user_id == $current_user->ID || current_user_can( 'manage_options' );
+
+	/**
+	 * Filter whether to allow access to the user page.
+	 *
+	 * @since TBD
+	 *
+	 * @param bool $allow_access Whether to allow access to the user page.
+	 * @param int $page_user_id The user ID of the user page.
+	 * @return bool Whether to allow access to the user page.
+	 */
+	$allow_access = apply_filters( 'pmproup_allow_access_to_user_page', $allow_access, $page_user_id );
+
+	// Redirect if we are not allowing access.
+	if ( ! $allow_access ) {
+		wp_redirect( home_url() );
+		exit;
 	}
 }
 add_action("template_redirect", "pmproup_template_redirect");
