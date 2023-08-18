@@ -3,7 +3,7 @@
 Plugin Name: Paid Memberships Pro - User Pages Add On
 Plugin URI: http://www.paidmembershipspro.com/pmpro-user-pages/
 Description: When a user signs up, create a page for them that only they (and admins) have access to.
-Version: .6
+Version: 0.7
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
 Text Domain: pmpro-user-pages
@@ -27,12 +27,12 @@ require_once(dirname(__FILE__) . '/includes/settings.php');	//settings page for 
 /*
 	Create user pages at checkout
 
-	@deprecated TBD
+	@deprecated 0.7
 */
 function pmproup_pmpro_after_checkout($user_id)
 {
 	// Deprecation warning.
-	_deprecated_function( __FUNCTION__, 'pmproup_pmpro_after_checkout', 'TBD', 'pmproup_pmpro_after_change_membership_level' );
+	_deprecated_function( __FUNCTION__, 'pmproup_pmpro_after_checkout', '0.7', 'pmproup_pmpro_after_change_membership_level' );
 
 	//user info
 	$user = get_userdata($user_id);
@@ -244,7 +244,7 @@ function pmproup_template_redirect() {
 	/**
 	 * Filter whether to allow access to the user page.
 	 *
-	 * @since TBD
+	 * @since 0.7
 	 *
 	 * @param bool $allow_access Whether to allow access to the user page.
 	 * @param int $page_user_id The user ID of the user page.
@@ -331,7 +331,7 @@ add_filter("pre_get_posts", "pmproup_pre_get_posts");
 /**
  * Get the post_id for a user's page.
  *
- * @since TBD
+ * @since 0.7
 
  *
  * @param int|null $user_id to get page for.

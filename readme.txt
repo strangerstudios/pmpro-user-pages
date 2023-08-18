@@ -3,7 +3,7 @@ Contributors: strangerstudios
 Tags: paid memberships pro, pmpro, membership, user pages
 Requires at least: 4
 Tested up to: 6.3
-Stable tag: .6
+Stable tag: 0.7
 
 When users checkout from a PMPro registration page, a page is created for them that only that user and WP admins will have access to.
 
@@ -24,6 +24,14 @@ This plugin currently requires Paid Memberships Pro.
 Please post it in the issues section of GitHub and we'll fix it as soon as we can. Thanks for helping. https://github.com/strangerstudios/pmpro-user-pages/issues
 
 == Changelog ==
+= 0.7 - 2023-08-18 =
+* ENHANCEMENT: Added the `pmproup_allow_access_to_user_page` filter to adjust viewing restrictions for a user page. #14 (@andrewlimaza, @dparker1005)
+* ENHANCEMENT: Added `<span>` tags around dates in the Account Page member links to allow styling that content. #13 (@kimwhite)
+* BUG FIX/ENHANCEMENT: Now cleaning up user page data for users whose corresponding user page has been deleted. #12 (@dparker1005)
+* BUG FIX/ENHANCEMENT: Improved compatibility with PMPro Multiple Memberships Per User Add On. #20 (@dparker1005)
+* BUG FIX/ENHANCEMENT: Now creating sub-pages whenever a membership level is changed instead of only after checkouts. #20 (@dparker1005)
+* BUG FIX/ENHANCEMENT: Updated localization and escaping of strings. #15 (@femiyb)
+
 = .6 =
 * BUG FIX/ENHANCEMENT: Now adding user page on pmpro_after_change_membership_level function call instead of pmpro_after_checkout. If you add a member manually, they will have a User Page generated.
 * BUG FIX: Fixed warning when hiding user pages from searches.
