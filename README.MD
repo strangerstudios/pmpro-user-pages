@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-GPL--3.0%2B-red.svg?style=flat-square)
 
 ### Welcome to the Paid Memberships Pro - User Pages GitHub Repository
-Add a description of the product here.
+When a user checks out from a Paid Memberships Pro registration page, this Add On automatically creates a private page for them that only that user and WordPress administrators can access.
 
 For more information please visit [https://www.paidmembershipspro.com/add-ons/pmpro-user-pages/](https://www.paidmembershipspro.com/add-ons/pmpro-user-pages/)
 
