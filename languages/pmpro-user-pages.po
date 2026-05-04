@@ -1,36 +1,41 @@
-# Copyright (C) 2023 Stranger Studios
+# Copyright (C) 2026 Stranger Studios
 # This file is distributed under the same license as the Paid Memberships Pro - User Pages Add On plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Paid Memberships Pro - User Pages Add On 0.7\n"
+"Project-Id-Version: Paid Memberships Pro - User Pages Add On 0.7.1\n"
 "Report-Msgid-Bugs-To: info@paidmembershipspro.com\n"
 "Last-Translator: Paid Memberships Pro <info@paidmembershipspro.com>\n"
 "Language-Team: Paid Memberships Pro <info@paidmembershipspro.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-08-18T18:18:37+00:00\n"
+"POT-Creation-Date: 2026-05-04T19:38:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.8.1\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: pmpro-user-pages\n"
 
 #. Plugin Name of the plugin
+#: pmpro-user-pages.php
 msgid "Paid Memberships Pro - User Pages Add On"
 msgstr ""
 
 #. Plugin URI of the plugin
+#: pmpro-user-pages.php
 msgid "http://www.paidmembershipspro.com/pmpro-user-pages/"
 msgstr ""
 
 #. Description of the plugin
+#: pmpro-user-pages.php
 msgid "When a user signs up, create a page for them that only they (and admins) have access to."
 msgstr ""
 
 #. Author of the plugin
+#: pmpro-user-pages.php
 msgid "Stranger Studios"
 msgstr ""
 
 #. Author URI of the plugin
+#: pmpro-user-pages.php
 msgid "http://www.strangerstudios.com"
 msgstr ""
 
@@ -95,17 +100,27 @@ msgid "Thank you for your purchase. This page will be updated soon with updates 
 msgstr ""
 
 #: pmpro-user-pages.php:380
+#: pmpro-user-pages.php:384
 msgid "View Documentation"
 msgstr ""
 
 #: pmpro-user-pages.php:380
+#: pmpro-user-pages.php:384
 msgid "Docs"
 msgstr ""
 
 #: pmpro-user-pages.php:381
+#: pmpro-user-pages.php:385
 msgid "Visit Customer Support Forum"
 msgstr ""
 
 #: pmpro-user-pages.php:381
+#: pmpro-user-pages.php:385
 msgid "Support"
+msgstr ""
+
+#. translators: %s: link to the user's most recent order page.
+#: pmpro-user-pages.php:282
+#, php-format
+msgid "<strong>Important</strong>. Updates on your order will be posted here: %s"
 msgstr ""
