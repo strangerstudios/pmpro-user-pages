@@ -260,6 +260,35 @@ function pmproup_template_redirect() {
 }
 add_action("template_redirect", "pmproup_template_redirect");
 
+/**
+ * Apply the user page access check to REST API requests as well.
+ */
+function pmproup_rest_prepare_page( $response, $post, $request ) {
+	global $wpdb;
+
+	// Build an array of all related posts that could be user pages.
+	$pages_to_check = array_map( 'intval', array_merge( get_post_ancestors( $post ), array( $post->ID ) ) );
+
+	// Check if any of the related posts are user pages.
+	$page_user_id = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND meta_value IN(" . implode(",", $pages_to_check) . ") LIMIT 1");
+
+	// If this is not a user page, return.
+	if ( empty( $page_user_id ) ) {
+		return $response;
+	}
+
+	// Match the front-end access check.
+	$allow_access = $page_user_id == get_current_user_id() || current_user_can( 'manage_options' );
+	$allow_access = apply_filters( 'pmproup_allow_access_to_user_page', $allow_access, $page_user_id );
+
+	if ( ! $allow_access ) {
+		return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to view this page.', 'pmpro-user-pages' ), array( 'status' => rest_authorization_required_code() ) );
+	}
+
+	return $response;
+}
+add_filter( 'rest_prepare_page', 'pmproup_rest_prepare_page', 10, 3 );
+
 //update the confirmation page
 function pmproup_pmpro_confirmation_message($message)
 {
