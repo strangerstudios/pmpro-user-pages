@@ -226,11 +226,8 @@ function pmproup_template_redirect() {
 		return;
 	}
 
-	// Build an array of all related posts that could be user pages.
-	$pages_to_check = array_merge( get_post_ancestors( $post ), array( $post->ID ) );
-
-	// Check if any of the related posts are user pages.
-	$page_user_id = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND meta_value IN(" . implode(",", $pages_to_check) . ") LIMIT 1");
+	// Check if this post or any of its ancestors are user pages.
+	$page_user_id = pmproup_get_user_page_owner( $post );
 
 	// If we are not on a user page, return.
 	if ( empty( $page_user_id ) ) {
@@ -261,20 +258,47 @@ function pmproup_template_redirect() {
 add_action("template_redirect", "pmproup_template_redirect");
 
 /**
- * Apply the user page access check to REST API requests as well.
+ * Get the owner of a user page, checking the post and its ancestors.
+ *
+ * @param WP_Post $post The post to check.
+ * @return int|null The user ID that owns the page, or null if this is not a user page.
  */
-function pmproup_rest_prepare_page( $response, $post, $request ) {
+function pmproup_get_user_page_owner( $post ) {
 	global $wpdb;
 
 	// Build an array of all related posts that could be user pages.
 	$pages_to_check = array_map( 'intval', array_merge( get_post_ancestors( $post ), array( $post->ID ) ) );
 
 	// Check if any of the related posts are user pages.
-	$page_user_id = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND meta_value IN(" . implode(",", $pages_to_check) . ") LIMIT 1");
+	return $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND meta_value IN(" . implode(",", $pages_to_check) . ") LIMIT 1");
+}
+
+/**
+ * Apply the user page access check to REST API requests as well.
+ *
+ * Runs on rest_pre_dispatch so denied requests can return an error before the
+ * posts controller prepares a response (returning an error from rest_prepare_page
+ * would fatal when the controller calls link_header() on it).
+ */
+function pmproup_rest_pre_dispatch( $result, $server, $request ) {
+	if ( ! empty( $result ) ) {
+		return $result;
+	}
+
+	// Only intercept single page requests.
+	if ( ! preg_match( '#^/wp/v2/pages/(\d+)$#', $request->get_route(), $matches ) ) {
+		return $result;
+	}
+
+	$post = get_post( (int) $matches[1] );
+	if ( empty( $post ) ) {
+		return $result;
+	}
 
 	// If this is not a user page, return.
+	$page_user_id = pmproup_get_user_page_owner( $post );
 	if ( empty( $page_user_id ) ) {
-		return $response;
+		return $result;
 	}
 
 	// Match the front-end access check.
@@ -285,9 +309,9 @@ function pmproup_rest_prepare_page( $response, $post, $request ) {
 		return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to view this page.', 'pmpro-user-pages' ), array( 'status' => rest_authorization_required_code() ) );
 	}
 
-	return $response;
+	return $result;
 }
-add_filter( 'rest_prepare_page', 'pmproup_rest_prepare_page', 10, 3 );
+add_filter( 'rest_pre_dispatch', 'pmproup_rest_pre_dispatch', 10, 3 );
 
 //update the confirmation page
 function pmproup_pmpro_confirmation_message($message)
