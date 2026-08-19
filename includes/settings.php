@@ -69,6 +69,9 @@ function pmproup_adminpage()
 	//saving?
 	if(!empty($_REQUEST['savesettings']))
 	{
+		//check the nonce
+		check_admin_referer( 'pmproup_settings', 'pmproup_settings_nonce' );
+
 		//get parent page
 		$parent_page = intval($_REQUEST['parent_page']);
 		
@@ -121,7 +124,8 @@ function pmproup_adminpage()
 	
 	require_once(PMPRO_DIR . "/adminpages/admin_header.php");		
 	?>
-		<form action="" method="post" enctype="multipart/form-data"> 
+		<form action="" method="post" enctype="multipart/form-data">
+			<?php wp_nonce_field( 'pmproup_settings', 'pmproup_settings_nonce' ); ?>
 			<h2><?php _e('User Pages Settings', 'pmpro-user-pages'); ?></h2>
 		
 			<?php
