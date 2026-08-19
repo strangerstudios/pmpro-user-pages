@@ -301,8 +301,8 @@ function pmproup_rest_pre_dispatch( $result, $server, $request ) {
 		return $result;
 	}
 
-	// Match the front-end access check.
-	$allow_access = $page_user_id == get_current_user_id() || current_user_can( 'manage_options' );
+	// Match the front-end access check, but also allow users who can edit this page (e.g. Editors using the block editor).
+	$allow_access = $page_user_id == get_current_user_id() || current_user_can( 'edit_page', $post->ID );
 	$allow_access = apply_filters( 'pmproup_allow_access_to_user_page', $allow_access, $page_user_id );
 
 	if ( ! $allow_access ) {
