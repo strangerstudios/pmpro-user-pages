@@ -3,7 +3,7 @@
 Plugin Name: Paid Memberships Pro - User Pages Add On
 Plugin URI: http://www.paidmembershipspro.com/pmpro-user-pages/
 Description: When a user signs up, create a page for them that only they (and admins) have access to.
-Version: 0.7.1
+Version: 0.7.2
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
 Text Domain: pmpro-user-pages
