@@ -15,6 +15,10 @@ To setup:
 	2. Navigate to Memberships --> User Pages and complete the settings.
 */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 // load text domain
 function pmpro_user_pages_load_plugin_text_domain() {
 	load_plugin_textdomain( 'pmpro-user-pages', false, basename( dirname( __FILE__ ) ) . '/languages' ); 
@@ -118,11 +122,11 @@ function pmproup_pmpro_member_links_top()
 		$user_page_id = pmproup_get_page_for_user( $current_user->ID );
 		if ( ! empty( $user_page_id ) ) {
 			//get children
-			$pages = $wpdb->get_results("SELECT ID, post_title, UNIX_TIMESTAMP(post_date) as post_date FROM $wpdb->posts WHERE post_parent = '" . $user_page_id . "' AND post_status = 'publish'");
+			$pages = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_title, UNIX_TIMESTAMP(post_date) as post_date FROM $wpdb->posts WHERE post_parent = %d AND post_status = 'publish'", $user_page_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared lookup of the user page's child pages.
 			if(!empty($pages)) {
 				foreach($pages as $page) {
 				?>
-					<li><a href="<?php echo get_permalink($page->ID); ?>"><?php echo $page->post_title; ?> <span class="pmpro_userpage_date">(<?php echo date("m/d/Y", $page->post_date)?>)</span></a></li>
+					<li><a href="<?php echo esc_url( get_permalink( $page->ID ) ); ?>"><?php echo esc_html( $page->post_title ); ?> <span class="pmpro_userpage_date">(<?php echo esc_html( date( "m/d/Y", $page->post_date ) ); ?>)</span></a></li>
 				<?php
 				}
 			}
@@ -146,11 +150,11 @@ function pmproup_add_user_pages_below_the_content($content)
 		$user_page_id = pmproup_get_page_for_user( $up_user->ID );
 		if( ! empty( $user_page_id ) && $post->ID == $user_page_id) {
 			//alright, let's show the page list at the end of the_content			
-			$pages = $wpdb->get_results("SELECT ID, post_title, UNIX_TIMESTAMP(post_date) as post_date FROM $wpdb->posts WHERE post_parent = '" . $user_page_id . "' AND post_status = 'publish'");
+			$pages = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_title, UNIX_TIMESTAMP(post_date) as post_date FROM $wpdb->posts WHERE post_parent = %d AND post_status = 'publish'", $user_page_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared lookup of the user page's child pages.
 			if(!empty($pages)) {
 				$content .= "\n<ul class='user_page_list'>";
 				foreach($pages as $page) {
-					$content .= '<li><a href="' . get_permalink($page->ID) . '">' . $page->post_title . ' <span class="pmpro_userpage_date">(' . date("m/d/Y", $page->post_date) . ')</span></a></li>';			
+					$content .= '<li><a href="' . esc_url( get_permalink( $page->ID ) ) . '">' . esc_html( $page->post_title ) . ' <span class="pmpro_userpage_date">(' . esc_html( date( "m/d/Y", $page->post_date ) ) . ')</span></a></li>';			
 				}
 				$content .= "\n</ul>";
 			}
@@ -175,11 +179,11 @@ function pmproup_wp_parent_page()
 			$user_page_id = pmproup_get_page_for_user( $current_user->ID );
 			if(!empty($user_page_id)) {
 				//redirect to the user's user page
-				wp_redirect(get_permalink($user_page_id));
+				wp_redirect(get_permalink($user_page_id)); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- Permalink of the user's own page; page_link can be filtered to another domain (e.g. domain mapping), which wp_safe_redirect() would reject.
 				exit;
 			} else { 
 				//redirect away
-				wp_redirect(home_url());
+				wp_safe_redirect(home_url());
 				exit;
 			}
 		}
@@ -199,13 +203,13 @@ function pmproup_parent_page_content($content)
 		if(current_user_can("manage_options"))		
 		{
 			//alright, let's show the page list at the end of the_content			
-			$users = $wpdb->get_results("SELECT u.display_name, um.meta_value FROM $wpdb->usermeta um LEFT JOIN $wpdb->users u ON um.user_id = u.ID WHERE um.meta_key = 'pmproup_user_page' AND u.ID IS NOT NULL GROUP BY um.user_id");
+			$users = $wpdb->get_results("SELECT u.display_name, um.meta_value FROM $wpdb->usermeta um LEFT JOIN $wpdb->users u ON um.user_id = u.ID WHERE um.meta_key = 'pmproup_user_page' AND u.ID IS NOT NULL GROUP BY um.user_id"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Static query with no user input.
 			if(!empty($users))
 			{
 				$content .= "\n<ul class='user_page_list'>";
 				foreach($users as $user)
 				{
-					$content .= '<li><a href="' . get_permalink($user->meta_value) . '">' . $user->display_name . '</a></li>';		
+					$content .= '<li><a href="' . esc_url( get_permalink( $user->meta_value ) ) . '">' . esc_html( $user->display_name ) . '</a></li>';		
 				}
 				$content .= "\n</ul>";
 			}	
@@ -251,7 +255,7 @@ function pmproup_template_redirect() {
 
 	// Redirect if we are not allowing access.
 	if ( ! $allow_access ) {
-		wp_redirect( home_url() );
+		wp_safe_redirect( home_url() );
 		exit;
 	}
 }
@@ -270,7 +274,7 @@ function pmproup_get_user_page_owner( $post ) {
 	$pages_to_check = array_map( 'intval', array_merge( get_post_ancestors( $post ), array( $post->ID ) ) );
 
 	// Check if any of the related posts are user pages.
-	return $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND meta_value IN(" . implode(",", $pages_to_check) . ") LIMIT 1");
+	return $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND meta_value IN(" . implode(",", $pages_to_check) . ") LIMIT 1"); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $pages_to_check is run through intval above.
 }
 
 /**
@@ -325,7 +329,7 @@ function pmproup_pmpro_confirmation_message($message)
 		
 	if(!empty($user_page_id)){
 		//get the last page created for them
-		$lastpage = $wpdb->get_row("SELECT ID, post_title FROM $wpdb->posts WHERE post_type = 'page' AND post_parent = '" . $user_page_id . "' ORDER BY ID DESC LIMIT 1");
+		$lastpage = $wpdb->get_row( $wpdb->prepare( "SELECT ID, post_title FROM $wpdb->posts WHERE post_type = 'page' AND post_parent = %d ORDER BY ID DESC LIMIT 1", $user_page_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared lookup of the user's latest page.
 		
 		if(!empty($lastpage))
 		{
@@ -361,17 +365,17 @@ function pmproup_pre_get_posts($query)
 	{
 		//these are the top level member pages
 		if(!empty($current_user->ID))
-			$main_user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent = '" . $options['parent_page'] . "' AND ID <> '" . $options['parent_page'] . "' AND post_author <> '" . $current_user->ID . "'");	
+			$main_user_page_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND ID <> %d AND post_author <> %d", $options['parent_page'], $options['parent_page'], $current_user->ID ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared; results cached in a global below.	
 		else
-			$main_user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent = '" . $options['parent_page'] . "' AND ID <> '" . $options['parent_page'] . "'");	
+			$main_user_page_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND ID <> %d", $options['parent_page'], $options['parent_page'] ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared; results cached in a global below.	
 		if(empty($main_user_page_ids))
 			return $query;		//didn't find anything
 			
 		//these are the individually purchased user pages
 		if(!empty($current_user->ID))
-			$user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent IN (" . implode(",", $main_user_page_ids) . ") AND post_author <> '" . $current_user->ID . "'");	
+			$user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent IN (" . implode(",", $main_user_page_ids) . ") AND post_author <> '" . $current_user->ID . "'"); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $main_user_page_ids are integer wp_posts.ID values from the query above; $current_user->ID is an integer.	
 		else
-			$user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent IN (" . implode(",", $main_user_page_ids) . ")");	
+			$user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent IN (" . implode(",", $main_user_page_ids) . ")"); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $main_user_page_ids are integer wp_posts.ID values from the query above.	
 			
 		//combine the top level and sub pages
 		$all_pmpro_user_page_ids = array_merge($main_user_page_ids, $user_page_ids);
