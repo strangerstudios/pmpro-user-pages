@@ -353,6 +353,11 @@ add_action("pmpro_confirmation_message", "pmproup_pmpro_confirmation_message");
 */
 function pmproup_pre_get_posts($query)
 {
+	// Bail if pluggable functions aren't loaded yet (e.g. another plugin queries posts while loading).
+	if ( ! function_exists( 'wp_get_current_user' ) ) {
+		return $query;
+	}
+
 	$options = pmproup_getOptions();
 	
 	//don't fix anything on the admin side, and also let admins see everything
