@@ -278,6 +278,23 @@ function pmproup_get_user_page_owner( $post ) {
 }
 
 /**
+ * Add a body class to user pages so they can be targeted with CSS.
+ *
+ * @param array $classes The body classes.
+ * @return array The body classes.
+ */
+function pmproup_body_class( $classes ) {
+	$queried_object = get_queried_object();
+
+	if ( is_singular() && $queried_object instanceof WP_Post && ! empty( pmproup_get_user_page_owner( $queried_object ) ) ) {
+		$classes[] = 'pmpro-user-page';
+	}
+
+	return $classes;
+}
+add_filter( 'body_class', 'pmproup_body_class' );
+
+/**
  * Apply the user page access check to REST API requests as well.
  *
  * Runs on rest_pre_dispatch so denied requests can return an error before the
