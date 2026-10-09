@@ -346,18 +346,22 @@ function pmproup_pmpro_confirmation_message($message)
 }
 add_action("pmpro_confirmation_message", "pmproup_pmpro_confirmation_message");
 
-/*
-	Remove user pages from frontend searches/etc.
-	
-	All user pages are children of the User Pages parent page. So lets hide those pages (the main user pages) and the children of those pages (the purchased pages).
-*/
-function pmproup_pre_get_posts($query)
+/**
+ * Get the IDs of user pages that should be hidden from the current user.
+ *
+ * All user pages are children of the User Pages parent page. This returns those pages (the main user pages)
+ * and the children of those pages (the purchased pages), ignoring pages where the current user is author.
+ * Admins and the admin side see everything, so nothing is hidden there.
+ *
+ * @return array
+ */
+function pmproup_get_hidden_user_page_ids()
 {
 	$options = pmproup_getOptions();
 	
-	//don't fix anything on the admin side, and also let admins see everything
-	if(is_admin() || current_user_can("manage_options") || empty($options['parent_page']) || $query->is_singular())
-		return $query;
+	//don't hide anything on the admin side, and also let admins see everything
+	if(is_admin() || current_user_can("manage_options") || empty($options['parent_page']))
+		return array();
 	
 	//Using a global to cache the user page ids. If it is not set, we need to look them up. (Note we're ignoring posts where the current user is author.)
 	global $wpdb, $current_user, $all_pmpro_user_page_ids;	
@@ -369,7 +373,7 @@ function pmproup_pre_get_posts($query)
 		else
 			$main_user_page_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND ID <> %d", $options['parent_page'], $options['parent_page'] ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared; results cached in a global below.	
 		if(empty($main_user_page_ids))
-			return $query;		//didn't find anything
+			return array();		//didn't find anything
 			
 		//these are the individually purchased user pages
 		if(!empty($current_user->ID))
@@ -380,6 +384,19 @@ function pmproup_pre_get_posts($query)
 		//combine the top level and sub pages
 		$all_pmpro_user_page_ids = array_merge($main_user_page_ids, $user_page_ids);
 	}
+
+	return $all_pmpro_user_page_ids;
+}
+
+/*
+	Remove user pages from frontend searches/etc.
+*/
+function pmproup_pre_get_posts($query)
+{
+	if($query->is_singular())
+		return $query;
+	
+	$all_pmpro_user_page_ids = pmproup_get_hidden_user_page_ids();
 	if ( ! empty( $all_pmpro_user_page_ids ) ) {
 		//add user page ids to the post__not_in query var
 		$query->set('post__not_in', array_merge($query->query_vars['post__not_in'], $all_pmpro_user_page_ids));
@@ -388,6 +405,21 @@ function pmproup_pre_get_posts($query)
 	return $query;
 }
 add_filter("pre_get_posts", "pmproup_pre_get_posts");
+
+/*
+	Remove user pages from previous/next post links. get_adjacent_post() doesn't use WP_Query, so pre_get_posts doesn't cover it.
+*/
+function pmproup_adjacent_post_where($where)
+{
+	$all_pmpro_user_page_ids = pmproup_get_hidden_user_page_ids();
+	if ( ! empty( $all_pmpro_user_page_ids ) ) {
+		$where .= " AND p.ID NOT IN (" . implode( ",", array_map( "intval", $all_pmpro_user_page_ids ) ) . ")";
+	}
+	
+	return $where;
+}
+add_filter("get_previous_post_where", "pmproup_adjacent_post_where");
+add_filter("get_next_post_where", "pmproup_adjacent_post_where");
 
 /**
  * Get the post_id for a user's page.
