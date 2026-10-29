@@ -382,7 +382,11 @@ function pmproup_pre_get_posts($query)
 	}
 	if ( ! empty( $all_pmpro_user_page_ids ) ) {
 		//add user page ids to the post__not_in query var
-		$query->set('post__not_in', array_merge($query->query_vars['post__not_in'], $all_pmpro_user_page_ids));
+		$post_not_in = function_exists( 'pmpro_get_post_not_in' ) ? pmpro_get_post_not_in( $query ) : $query->get( 'post__not_in' );
+		if ( ! is_array( $post_not_in ) ) {
+			$post_not_in = array();
+		}
+		$query->set( 'post__not_in', array_merge( $post_not_in, $all_pmpro_user_page_ids ) );
 	}
 	
 	return $query;
