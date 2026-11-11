@@ -372,8 +372,10 @@ function pmproup_get_hidden_user_page_ids()
 			$main_user_page_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND ID <> %d AND post_author <> %d", $options['parent_page'], $options['parent_page'], $current_user->ID ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared; results cached in a global below.	
 		else
 			$main_user_page_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND ID <> %d", $options['parent_page'], $options['parent_page'] ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared; results cached in a global below.	
-		if(empty($main_user_page_ids))
+		if(empty($main_user_page_ids)) {
+			$all_pmpro_user_page_ids = array();	//cache the empty result for this request
 			return array();		//didn't find anything
+		}
 			
 		//these are the individually purchased user pages
 		if(!empty($current_user->ID))
