@@ -289,8 +289,8 @@ function pmproup_rest_pre_dispatch( $result, $server, $request ) {
 		return $result;
 	}
 
-	// Only intercept single page requests.
-	if ( ! preg_match( '#^/wp/v2/pages/(\d+)$#', $request->get_route(), $matches ) ) {
+	// Only intercept single page requests. REST API routes match case-insensitively, so this check does too.
+	if ( ! preg_match( '#^/wp/v2/pages/(\d+)$#i', $request->get_route(), $matches ) ) {
 		return $result;
 	}
 
@@ -383,6 +383,24 @@ function pmproup_pre_get_posts($query)
 	if ( ! empty( $all_pmpro_user_page_ids ) ) {
 		//add user page ids to the post__not_in query var
 		$query->set('post__not_in', array_merge($query->query_vars['post__not_in'], $all_pmpro_user_page_ids));
+
+		// WP_Query ignores post__not_in when post__in is set (e.g. the REST API's "include" parameter), so also remove user pages from post__in.
+		// Users who can edit a user page can still request it by ID, matching the REST API access check for single pages.
+		$post__in = $query->get( 'post__in' );
+		if ( ! empty( $post__in ) && is_array( $post__in ) ) {
+			$hidden_user_page_ids = array_map( 'intval', $all_pmpro_user_page_ids );
+			$allowed_post__in = array();
+			foreach ( $post__in as $post_in_id ) {
+				if ( ! in_array( (int) $post_in_id, $hidden_user_page_ids, true ) || current_user_can( 'edit_post', $post_in_id ) ) {
+					$allowed_post__in[] = $post_in_id;
+				}
+			}
+
+			if ( count( $allowed_post__in ) !== count( $post__in ) ) {
+				// If every requested post was removed, make sure the query returns nothing instead of ignoring post__in.
+				$query->set( 'post__in', empty( $allowed_post__in ) ? array( 0 ) : $allowed_post__in );
+			}
+		}
 	}
 	
 	return $query;
