@@ -270,11 +270,19 @@ add_action("template_redirect", "pmproup_template_redirect");
 function pmproup_get_user_page_owner( $post ) {
 	global $wpdb;
 
+	// Cache the owner for each post for this request, since several checks can run on the same page.
+	static $owners = array();
+	if ( array_key_exists( $post->ID, $owners ) ) {
+		return $owners[ $post->ID ];
+	}
+
 	// Build an array of all related posts that could be user pages.
 	$pages_to_check = array_map( 'intval', array_merge( get_post_ancestors( $post ), array( $post->ID ) ) );
 
 	// Check if any of the related posts are user pages.
-	return $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND meta_value IN(" . implode(",", $pages_to_check) . ") LIMIT 1"); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $pages_to_check is run through intval above.
+	$owners[ $post->ID ] = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND meta_value IN(" . implode(",", $pages_to_check) . ") LIMIT 1"); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $pages_to_check is run through intval above.
+
+	return $owners[ $post->ID ];
 }
 
 /**
@@ -284,9 +292,12 @@ function pmproup_get_user_page_owner( $post ) {
  * @return array The body classes.
  */
 function pmproup_body_class( $classes ) {
-	$queried_object = get_queried_object();
+	if ( ! is_singular() ) {
+		return $classes;
+	}
 
-	if ( is_singular() && $queried_object instanceof WP_Post && ! empty( pmproup_get_user_page_owner( $queried_object ) ) ) {
+	$queried_object = get_queried_object();
+	if ( $queried_object instanceof WP_Post && ! empty( pmproup_get_user_page_owner( $queried_object ) ) ) {
 		$classes[] = 'pmpro-user-page';
 	}
 
