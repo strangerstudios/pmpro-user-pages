@@ -377,6 +377,15 @@ function pmproup_pre_get_posts($query)
 		else
 			$user_page_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_parent IN (" . implode(",", $main_user_page_ids) . ")"); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $main_user_page_ids are integer wp_posts.ID values from the query above.	
 			
+		//also hide any pages nested further below the purchased pages
+		$author_where = ! empty( $current_user->ID ) ? $wpdb->prepare( ' AND post_author <> %d', $current_user->ID ) : '';
+		$child_page_ids = $user_page_ids;
+		while ( ! empty( $child_page_ids ) ) {
+			$child_page_ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_parent IN (" . implode( ',', array_map( 'intval', $child_page_ids ) ) . ")" . $author_where ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- IDs are run through intval and $author_where is prepared above.
+			$child_page_ids = array_diff( $child_page_ids, $main_user_page_ids, $user_page_ids );
+			$user_page_ids = array_merge( $user_page_ids, $child_page_ids );
+		}
+
 		//combine the top level and sub pages
 		$all_pmpro_user_page_ids = array_merge($main_user_page_ids, $user_page_ids);
 	}
@@ -391,7 +400,9 @@ function pmproup_pre_get_posts($query)
 			$hidden_user_page_ids = array_map( 'intval', $all_pmpro_user_page_ids );
 			$allowed_post__in = array();
 			foreach ( $post__in as $post_in_id ) {
-				if ( ! in_array( (int) $post_in_id, $hidden_user_page_ids, true ) || current_user_can( 'edit_post', $post_in_id ) ) {
+				// WP_Query runs post__in through absint(), so compare the same value.
+				$post_in_id = absint( $post_in_id );
+				if ( ! in_array( $post_in_id, $hidden_user_page_ids, true ) || current_user_can( 'edit_post', $post_in_id ) ) {
 					$allowed_post__in[] = $post_in_id;
 				}
 			}
