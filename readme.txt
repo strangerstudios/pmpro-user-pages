@@ -1,9 +1,9 @@
 === Paid Memberships Pro - User Pages Add On ===
 Contributors: strangerstudios
 Tags: paid memberships pro, pmpro, membership, user pages
-Requires at least: 4
+Requires at least: 6.3
 Tested up to: 7.1
-Stable tag: 0.7.3
+Stable tag: 0.7.4
 
 When users checkout from a PMPro registration page, a page is created for them that only that user and WP admins will have access to.
 
@@ -24,6 +24,16 @@ This plugin currently requires Paid Memberships Pro.
 Please post it in the issues section of GitHub and we'll fix it as soon as we can. Thanks for helping. https://github.com/strangerstudios/pmpro-user-pages/issues
 
 == Changelog ==
+= 0.7.4 - 2026-11-11 =
+* SECURITY: Other members' user pages are no longer returned by REST API requests that ask for specific page IDs. #35 (@dparker1005)
+* SECURITY: Pages nested more than two levels below the user pages parent page are now hidden from other users in searches and page lists. #35 (@dparker1005)
+* SECURITY: The REST API access check for a single user page now applies regardless of the capitalization of the route. #35 (@dparker1005)
+* SECURITY: Other members' user pages are no longer shown in previous and next post links. #33 (@dparker1005)
+* ENHANCEMENT: Added a `pmpro-user-page` body class to user pages and their sub-pages. #32 (@dparker1005)
+* ENHANCEMENT: The plugin now requires WordPress 6.3 or later, which is needed to hide other members' user pages from page lists.
+* BUG FIX: Fixed a fatal error when a query passes a `post__not_in` value that is not an array. #34 (@dwanjuki)
+* BUG FIX: Fixed a fatal error when another plugin queries posts while plugins are loading. #31 (@dparker1005)
+
 = 0.7.3 - 2026-09-29 =
 * SECURITY: Improved sanitization and escaping throughout the plugin to resolve Plugin Check security findings. #30 (@dparker1005)
 
