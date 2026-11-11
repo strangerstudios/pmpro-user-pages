@@ -387,7 +387,7 @@ function pmproup_get_hidden_user_page_ids()
 {
 	// Bail if pluggable functions aren't loaded yet (e.g. another plugin queries posts while loading).
 	if ( ! function_exists( 'wp_get_current_user' ) ) {
-		return $query;
+		return array();
 	}
 
 	$options = pmproup_getOptions();
