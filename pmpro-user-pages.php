@@ -345,6 +345,151 @@ function pmproup_rest_pre_dispatch( $result, $server, $request ) {
 }
 add_filter( 'rest_pre_dispatch', 'pmproup_rest_pre_dispatch', 10, 3 );
 
+/**
+ * Get the IDs of all user pages and the pages below them, for every member.
+ *
+ * @since TBD
+ *
+ * @return int[] Post IDs.
+ */
+function pmproup_get_all_user_page_ids() {
+	global $wpdb;
+
+	// Cache the IDs for this request, since several checks can run in one request.
+	static $all_user_page_ids = null;
+	if ( null !== $all_user_page_ids ) {
+		return $all_user_page_ids;
+	}
+
+	$all_user_page_ids = array();
+	$options = pmproup_getOptions();
+	if ( empty( $options['parent_page'] ) ) {
+		return $all_user_page_ids;
+	}
+
+	// User pages are children of the parent page. Walk down from there to get the pages at every level below it.
+	$child_page_ids = array( (int) $options['parent_page'] );
+	while ( ! empty( $child_page_ids ) ) {
+		$child_page_ids = array_map( 'intval', $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_parent IN (" . implode( ',', $child_page_ids ) . ") AND post_type NOT IN ( 'revision', 'attachment' )" ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- IDs are integers; results are cached for the request above.
+		$child_page_ids = array_diff( $child_page_ids, $all_user_page_ids, array( (int) $options['parent_page'] ) );
+		$all_user_page_ids = array_merge( $all_user_page_ids, $child_page_ids );
+	}
+
+	return $all_user_page_ids;
+}
+
+/**
+ * Get the IDs of users whose only published posts of the given post types are user pages.
+ *
+ * WordPress lists users with published posts in the REST API users endpoint. Members author their own
+ * user pages, so without this check every member with a user page would be listed there.
+ *
+ * @since TBD
+ *
+ * @param string[] $post_types Post types that make a user public.
+ * @return int[] User IDs.
+ */
+function pmproup_get_user_page_only_author_ids( $post_types ) {
+	global $wpdb;
+
+	$post_types = array_values( array_filter( (array) $post_types, 'is_string' ) );
+	$user_page_ids = pmproup_get_all_user_page_ids();
+	if ( empty( $post_types ) || empty( $user_page_ids ) ) {
+		return array();
+	}
+
+	// Cache the result for each set of post types for this request.
+	static $author_ids = array();
+	sort( $post_types );
+	$cache_key = implode( ',', $post_types );
+	if ( isset( $author_ids[ $cache_key ] ) ) {
+		return $author_ids[ $cache_key ];
+	}
+
+	$user_page_ids_sql = implode( ',', array_map( 'intval', $user_page_ids ) );
+	$post_types_sql = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
+	$author_ids[ $cache_key ] = array_map( 'intval', $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE ID IN ($user_page_ids_sql) AND post_status = 'publish' AND post_type IN ($post_types_sql) AND post_author NOT IN ( SELECT post_author FROM $wpdb->posts WHERE post_status = 'publish' AND post_type IN ($post_types_sql) AND ID NOT IN ($user_page_ids_sql) )", array_merge( $post_types, $post_types ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $user_page_ids_sql is integers and $post_types_sql is %s placeholders; results are cached for the request above.
+
+	return $author_ids[ $cache_key ];
+}
+
+/**
+ * Leave members out of the REST API users list when their user pages are their only published posts.
+ *
+ * @since TBD
+ *
+ * @param array           $prepared_args Arguments for WP_User_Query.
+ * @param WP_REST_Request $request       The REST API request.
+ * @return array
+ */
+function pmproup_rest_user_query( $prepared_args, $request ) {
+	// WordPress only limits the list to users with published posts for visitors who can't list users.
+	// Users who can edit others' pages can already see user pages and their authors.
+	if ( empty( $prepared_args['has_published_posts'] ) || current_user_can( 'list_users' ) || current_user_can( 'edit_others_pages' ) ) {
+		return $prepared_args;
+	}
+
+	$post_types = true === $prepared_args['has_published_posts'] ? get_post_types( array( 'show_in_rest' => true ), 'names' ) : (array) $prepared_args['has_published_posts'];
+	$hidden_user_ids = array_diff( pmproup_get_user_page_only_author_ids( $post_types ), array( get_current_user_id() ) );
+	if ( empty( $hidden_user_ids ) ) {
+		return $prepared_args;
+	}
+
+	// WP_User_Query ignores exclude when include is set, so remove the hidden users from include as well.
+	if ( ! empty( $prepared_args['include'] ) ) {
+		$include = array_diff( wp_parse_id_list( $prepared_args['include'] ), $hidden_user_ids );
+		$prepared_args['include'] = empty( $include ) ? array( 0 ) : array_values( $include );
+	} else {
+		$exclude = empty( $prepared_args['exclude'] ) ? array() : wp_parse_id_list( $prepared_args['exclude'] );
+		$prepared_args['exclude'] = array_values( array_unique( array_merge( $exclude, $hidden_user_ids ) ) );
+	}
+
+	return $prepared_args;
+}
+add_filter( 'rest_user_query', 'pmproup_rest_user_query', 20, 2 );
+
+/**
+ * Deny REST API requests for a single user when their user pages are their only published posts.
+ *
+ * WordPress lets anyone view a user through /wp/v2/users/<id> once they have a published post,
+ * and has no filter specific to that check (the `get_usernumposts` filter applies to every post count
+ * on the site), so this runs before the users controller's callbacks and returns the same error
+ * WordPress returns for users without published posts.
+ *
+ * @since TBD
+ *
+ * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
+ * @param array                                            $handler  Route handler used for the request.
+ * @param WP_REST_Request                                  $request  Request used to generate the response.
+ * @return mixed
+ */
+function pmproup_rest_request_before_callbacks_user( $response, $handler, $request ) {
+	if ( ! empty( $response ) ) {
+		return $response;
+	}
+
+	// Only check requests for a single user.
+	if ( empty( $handler['callback'] ) || ! is_array( $handler['callback'] ) || ! $handler['callback'][0] instanceof WP_REST_Users_Controller || 'get_item' !== $handler['callback'][1] ) {
+		return $response;
+	}
+
+	// Use the same user ID the users controller uses.
+	$user_id = (int) $request['id'];
+
+	// Match the WordPress check: users can always view themselves, and users who can edit or list users can view anyone.
+	// Users who can edit others' pages can already see user pages and their authors.
+	if ( get_current_user_id() === $user_id || current_user_can( 'edit_user', $user_id ) || current_user_can( 'list_users' ) || current_user_can( 'edit_others_pages' ) ) {
+		return $response;
+	}
+
+	if ( ! in_array( $user_id, pmproup_get_user_page_only_author_ids( get_post_types( array( 'show_in_rest' => true ), 'names' ) ), true ) ) {
+		return $response;
+	}
+
+	return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you are not allowed to list users.', 'pmpro-user-pages' ), array( 'status' => rest_authorization_required_code() ) );
+}
+add_filter( 'rest_request_before_callbacks', 'pmproup_rest_request_before_callbacks_user', 10, 3 );
+
 //update the confirmation page
 function pmproup_pmpro_confirmation_message($message)
 {
