@@ -490,6 +490,31 @@ function pmproup_rest_request_before_callbacks_user( $response, $handler, $reque
 }
 add_filter( 'rest_request_before_callbacks', 'pmproup_rest_request_before_callbacks_user', 10, 3 );
 
+/**
+ * Don't allow oEmbed for user pages.
+ *
+ * Without this, the oEmbed endpoint returns the title and author of any user page.
+ * Returning 0 makes the endpoint respond the same as it does for a URL that isn't a post.
+ * This applies to everyone, including the page owner: embeds of same-site links are cached and
+ * shown to every visitor, and the embed itself redirects visitors who can't access the page.
+ * It also ignores the pmproup_allow_access_to_user_page filter for the same reason.
+ *
+ * @since TBD
+ *
+ * @param int    $post_id The post ID found for the requested URL.
+ * @param string $url     The requested URL.
+ * @return int
+ */
+function pmproup_oembed_request_post_id( $post_id, $url ) {
+	$post = empty( $post_id ) ? null : get_post( $post_id );
+	if ( empty( $post ) || empty( pmproup_get_user_page_owner( $post ) ) ) {
+		return $post_id;
+	}
+
+	return 0;
+}
+add_filter( 'oembed_request_post_id', 'pmproup_oembed_request_post_id', 10, 2 );
+
 //update the confirmation page
 function pmproup_pmpro_confirmation_message($message)
 {
