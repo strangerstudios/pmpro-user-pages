@@ -352,6 +352,7 @@ add_filter( 'rest_pre_dispatch', 'pmproup_rest_pre_dispatch', 10, 3 );
  * Returning 0 makes the endpoint respond the same as it does for a URL that isn't a post.
  * This applies to everyone, including the page owner: embeds of same-site links are cached and
  * shown to every visitor, and the embed itself redirects visitors who can't access the page.
+ * It also ignores the pmproup_allow_access_to_user_page filter for the same reason.
  *
  * @since TBD
  *
