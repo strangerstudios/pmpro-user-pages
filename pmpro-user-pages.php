@@ -452,8 +452,9 @@ add_filter( 'rest_user_query', 'pmproup_rest_user_query', 20, 2 );
  * Deny REST API requests for a single user when their user pages are their only published posts.
  *
  * WordPress lets anyone view a user through /wp/v2/users/<id> once they have a published post,
- * and has no filter for that check, so this runs before the users controller's callbacks and returns
- * the same error WordPress returns for users without published posts.
+ * and has no filter specific to that check (the `get_usernumposts` filter applies to every post count
+ * on the site), so this runs before the users controller's callbacks and returns the same error
+ * WordPress returns for users without published posts.
  *
  * @since TBD
  *
