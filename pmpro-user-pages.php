@@ -345,6 +345,38 @@ function pmproup_rest_pre_dispatch( $result, $server, $request ) {
 }
 add_filter( 'rest_pre_dispatch', 'pmproup_rest_pre_dispatch', 10, 3 );
 
+/**
+ * Apply the user page access check to oEmbed requests as well.
+ *
+ * Without this, the oEmbed endpoint returns the title and author of any user page.
+ * Returning 0 makes the endpoint respond the same as it does for a URL that isn't a post.
+ *
+ * @since TBD
+ *
+ * @param int    $post_id The post ID found for the requested URL.
+ * @param string $url     The requested URL.
+ * @return int
+ */
+function pmproup_oembed_request_post_id( $post_id, $url ) {
+	$post = get_post( $post_id );
+	if ( empty( $post ) ) {
+		return $post_id;
+	}
+
+	// If this is not a user page, return.
+	$page_user_id = pmproup_get_user_page_owner( $post );
+	if ( empty( $page_user_id ) ) {
+		return $post_id;
+	}
+
+	// Match the REST API access check.
+	$allow_access = $page_user_id == get_current_user_id() || current_user_can( 'edit_page', $post->ID );
+	$allow_access = apply_filters( 'pmproup_allow_access_to_user_page', $allow_access, $page_user_id );
+
+	return $allow_access ? $post_id : 0;
+}
+add_filter( 'oembed_request_post_id', 'pmproup_oembed_request_post_id', 10, 2 );
+
 //update the confirmation page
 function pmproup_pmpro_confirmation_message($message)
 {
