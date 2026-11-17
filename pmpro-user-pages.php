@@ -346,10 +346,12 @@ function pmproup_rest_pre_dispatch( $result, $server, $request ) {
 add_filter( 'rest_pre_dispatch', 'pmproup_rest_pre_dispatch', 10, 3 );
 
 /**
- * Apply the user page access check to oEmbed requests as well.
+ * Don't allow oEmbed for user pages.
  *
  * Without this, the oEmbed endpoint returns the title and author of any user page.
  * Returning 0 makes the endpoint respond the same as it does for a URL that isn't a post.
+ * This applies to everyone, including the page owner: embeds of same-site links are cached and
+ * shown to every visitor, and the embed itself redirects visitors who can't access the page.
  *
  * @since TBD
  *
@@ -358,22 +360,12 @@ add_filter( 'rest_pre_dispatch', 'pmproup_rest_pre_dispatch', 10, 3 );
  * @return int
  */
 function pmproup_oembed_request_post_id( $post_id, $url ) {
-	$post = get_post( $post_id );
-	if ( empty( $post ) ) {
+	$post = empty( $post_id ) ? null : get_post( $post_id );
+	if ( empty( $post ) || empty( pmproup_get_user_page_owner( $post ) ) ) {
 		return $post_id;
 	}
 
-	// If this is not a user page, return.
-	$page_user_id = pmproup_get_user_page_owner( $post );
-	if ( empty( $page_user_id ) ) {
-		return $post_id;
-	}
-
-	// Match the REST API access check.
-	$allow_access = $page_user_id == get_current_user_id() || current_user_can( 'edit_page', $post->ID );
-	$allow_access = apply_filters( 'pmproup_allow_access_to_user_page', $allow_access, $page_user_id );
-
-	return $allow_access ? $post_id : 0;
+	return 0;
 }
 add_filter( 'oembed_request_post_id', 'pmproup_oembed_request_post_id', 10, 2 );
 
