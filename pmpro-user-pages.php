@@ -3,7 +3,7 @@
 Plugin Name: Paid Memberships Pro - User Pages Add On
 Plugin URI: http://www.paidmembershipspro.com/pmpro-user-pages/
 Description: When a user signs up, create a page for them that only they (and admins) have access to.
-Version: 0.7.4
+Version: 0.7.5
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
 Text Domain: pmpro-user-pages
@@ -348,7 +348,7 @@ add_filter( 'rest_pre_dispatch', 'pmproup_rest_pre_dispatch', 10, 3 );
 /**
  * Get the IDs of all user pages and the pages below them, for every member.
  *
- * @since TBD
+ * @since 0.7.5
  *
  * @return int[] Post IDs.
  */
@@ -384,7 +384,7 @@ function pmproup_get_all_user_page_ids() {
  * WordPress lists users with published posts in the REST API users endpoint. Members author their own
  * user pages, so without this check every member with a user page would be listed there.
  *
- * @since TBD
+ * @since 0.7.5
  *
  * @param string[] $post_types Post types that make a user public.
  * @return int[] User IDs.
@@ -416,7 +416,7 @@ function pmproup_get_user_page_only_author_ids( $post_types ) {
 /**
  * Leave members out of the REST API users list when their user pages are their only published posts.
  *
- * @since TBD
+ * @since 0.7.5
  *
  * @param array           $prepared_args Arguments for WP_User_Query.
  * @param WP_REST_Request $request       The REST API request.
@@ -456,7 +456,7 @@ add_filter( 'rest_user_query', 'pmproup_rest_user_query', 20, 2 );
  * on the site), so this runs before the users controller's callbacks and returns the same error
  * WordPress returns for users without published posts.
  *
- * @since TBD
+ * @since 0.7.5
  *
  * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
  * @param array                                            $handler  Route handler used for the request.
@@ -499,7 +499,7 @@ add_filter( 'rest_request_before_callbacks', 'pmproup_rest_request_before_callba
  * shown to every visitor, and the embed itself redirects visitors who can't access the page.
  * It also ignores the pmproup_allow_access_to_user_page filter for the same reason.
  *
- * @since TBD
+ * @since 0.7.5
  *
  * @param int    $post_id The post ID found for the requested URL.
  * @param string $url     The requested URL.
