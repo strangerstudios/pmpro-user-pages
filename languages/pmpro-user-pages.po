@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Paid Memberships Pro - User Pages Add On plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Paid Memberships Pro - User Pages Add On 0.7.5\n"
+"Project-Id-Version: Paid Memberships Pro - User Pages Add On 0.7.6\n"
 "Report-Msgid-Bugs-To: info@paidmembershipspro.com\n"
 "Last-Translator: Paid Memberships Pro <info@paidmembershipspro.com>\n"
 "Language-Team: Paid Memberships Pro <info@paidmembershipspro.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-17T17:24:28+00:00\n"
+"POT-Creation-Date: 2026-11-18T17:19:51+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: pmpro-user-pages\n"
@@ -132,6 +132,7 @@ msgstr ""
 #: pmpro-user-pages.php:441
 #: pmpro-user-pages.php:541
 #: pmpro-user-pages.php:711
+#: pmpro-user-pages.php:727
 msgid "View Documentation"
 msgstr ""
 
@@ -141,6 +142,7 @@ msgstr ""
 #: pmpro-user-pages.php:441
 #: pmpro-user-pages.php:541
 #: pmpro-user-pages.php:711
+#: pmpro-user-pages.php:727
 msgid "Docs"
 msgstr ""
 
@@ -150,6 +152,7 @@ msgstr ""
 #: pmpro-user-pages.php:442
 #: pmpro-user-pages.php:542
 #: pmpro-user-pages.php:712
+#: pmpro-user-pages.php:728
 msgid "Visit Customer Support Forum"
 msgstr ""
 
@@ -159,6 +162,7 @@ msgstr ""
 #: pmpro-user-pages.php:442
 #: pmpro-user-pages.php:542
 #: pmpro-user-pages.php:712
+#: pmpro-user-pages.php:728
 msgid "Support"
 msgstr ""
 
@@ -168,6 +172,7 @@ msgstr ""
 #: pmpro-user-pages.php:339
 #: pmpro-user-pages.php:367
 #: pmpro-user-pages.php:537
+#: pmpro-user-pages.php:553
 #, php-format
 msgid "<strong>Important</strong>. Updates on your order will be posted here: %s"
 msgstr ""
@@ -175,9 +180,11 @@ msgstr ""
 #: pmpro-user-pages.php:309
 #: pmpro-user-pages.php:313
 #: pmpro-user-pages.php:341
+#: pmpro-user-pages.php:357
 msgid "Sorry, you are not allowed to view this page."
 msgstr ""
 
 #: pmpro-user-pages.php:489
+#: pmpro-user-pages.php:505
 msgid "Sorry, you are not allowed to list users."
 msgstr ""
