@@ -308,29 +308,39 @@ add_filter( 'body_class', 'pmproup_body_class' );
 /**
  * Apply the user page access check to REST API requests as well.
  *
- * Runs on rest_pre_dispatch so denied requests can return an error before the
+ * Runs on rest_request_before_callbacks so denied requests can return an error before the
  * posts controller prepares a response (returning an error from rest_prepare_page
- * would fatal when the controller calls link_header() on it).
+ * would fatal when the controller calls link_header() on it). The page ID comes from the
+ * request, not the route, because a query string or JSON body `id` takes precedence over the
+ * ID in the URL when the controller reads `$request['id']`.
+ *
+ * @since 0.7.6 Replaces pmproup_rest_pre_dispatch(), which read the page ID from the route.
+ *
+ * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
+ * @param array                                            $handler  Route handler used for the request.
+ * @param WP_REST_Request                                  $request  Request used to generate the response.
+ * @return mixed
  */
-function pmproup_rest_pre_dispatch( $result, $server, $request ) {
-	if ( ! empty( $result ) ) {
-		return $result;
+function pmproup_rest_request_before_callbacks_page( $response, $handler, $request ) {
+	if ( ! empty( $response ) ) {
+		return $response;
 	}
 
-	// Only intercept single page requests. REST API routes match case-insensitively, so this check does too.
-	if ( ! preg_match( '#^/wp/v2/pages/(\d+)$#i', $request->get_route(), $matches ) ) {
-		return $result;
+	// Only check requests for a single post. Controllers for other post types return their own error for a page ID.
+	if ( empty( $handler['callback'] ) || ! is_array( $handler['callback'] ) || ! $handler['callback'][0] instanceof WP_REST_Posts_Controller || 'get_item' !== $handler['callback'][1] ) {
+		return $response;
 	}
 
-	$post = get_post( (int) $matches[1] );
+	// Use the same post ID the posts controller uses.
+	$post = get_post( (int) $request['id'] );
 	if ( empty( $post ) ) {
-		return $result;
+		return $response;
 	}
 
 	// If this is not a user page, return.
 	$page_user_id = pmproup_get_user_page_owner( $post );
 	if ( empty( $page_user_id ) ) {
-		return $result;
+		return $response;
 	}
 
 	// Match the front-end access check, but also allow users who can edit this page (e.g. Editors using the block editor).
@@ -341,9 +351,9 @@ function pmproup_rest_pre_dispatch( $result, $server, $request ) {
 		return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to view this page.', 'pmpro-user-pages' ), array( 'status' => rest_authorization_required_code() ) );
 	}
 
-	return $result;
+	return $response;
 }
-add_filter( 'rest_pre_dispatch', 'pmproup_rest_pre_dispatch', 10, 3 );
+add_filter( 'rest_request_before_callbacks', 'pmproup_rest_request_before_callbacks_page', 10, 3 );
 
 /**
  * Get the IDs of all user pages and the pages below them, for every member.
