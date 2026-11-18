@@ -326,7 +326,7 @@ function pmproup_rest_request_before_callbacks_page( $response, $handler, $reque
 		return $response;
 	}
 
-	// Only check requests for a single post. Controllers for other post types return their own error for a page ID.
+	// Only check requests for a single post.
 	if ( empty( $handler['callback'] ) || ! is_array( $handler['callback'] ) || ! $handler['callback'][0] instanceof WP_REST_Posts_Controller || 'get_item' !== $handler['callback'][1] ) {
 		return $response;
 	}
@@ -334,6 +334,12 @@ function pmproup_rest_request_before_callbacks_page( $response, $handler, $reque
 	// Use the same post ID the posts controller uses.
 	$post = get_post( (int) $request['id'] );
 	if ( empty( $post ) ) {
+		return $response;
+	}
+
+	// Only check the post's own controller, so other post types' routes keep returning their usual error for this ID.
+	$post_type_object = get_post_type_object( $post->post_type );
+	if ( empty( $post_type_object ) || $handler['callback'][0] !== $post_type_object->get_rest_controller() ) {
 		return $response;
 	}
 
