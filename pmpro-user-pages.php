@@ -578,8 +578,8 @@ function pmproup_get_hidden_user_page_ids()
 
 	$options = pmproup_getOptions();
 	
-	//don't hide anything on the admin side, and also let admins see everything
-	if(is_admin() || current_user_can("manage_options") || empty($options['parent_page']))
+	//don't hide anything on the admin side (admin-ajax.php requests can come from the front end, so still hide there), and also let admins see everything
+	if( ( is_admin() && ! wp_doing_ajax() ) || current_user_can("manage_options") || empty($options['parent_page']))
 		return array();
 	
 	//Using a global to cache the user page ids. If it is not set, we need to look them up. (Note we're ignoring posts where the current user is author.)
