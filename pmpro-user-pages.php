@@ -140,14 +140,14 @@ function pmproup_add_user_pages_below_the_content($content)
 {
 	global $current_user, $post, $wpdb;
 	
-	//is this the current user's members page?	
-	if(!empty($current_user->ID))
+	//if a user is logged in and this is a main user page, show the owner's level pages (template_redirect limits who can view it)
+	if(!empty($current_user->ID) && !empty($post->ID))
 	{
-		$up_user = get_user_by('slug', $post->post_name);
-		if(empty($up_user))
+		$up_user_id = pmproup_get_user_page_owner( $post );
+		if(empty($up_user_id))
 			return $content;
 		
-		$user_page_id = pmproup_get_page_for_user( $up_user->ID );
+		$user_page_id = pmproup_get_page_for_user( $up_user_id );
 		if( ! empty( $user_page_id ) && $post->ID == $user_page_id) {
 			//alright, let's show the page list at the end of the_content			
 			$pages = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_title, UNIX_TIMESTAMP(post_date) as post_date FROM $wpdb->posts WHERE post_parent = %d AND post_status = 'publish'", $user_page_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared lookup of the user page's child pages.
@@ -198,7 +198,7 @@ function pmproup_parent_page_content($content)
 	
 	$options = pmproup_getOptions();
 	
-	if(!is_admin() && !empty($options['parent_page']) && $post->ID == $options['parent_page'])
+	if(!is_admin() && !empty($post->ID) && !empty($options['parent_page']) && $post->ID == $options['parent_page'])
 	{
 		if(current_user_can("manage_options"))		
 		{
