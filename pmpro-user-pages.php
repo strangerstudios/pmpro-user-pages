@@ -543,20 +543,27 @@ function pmproup_oembed_request_post_id( $post_id, $url ) {
 add_filter( 'oembed_request_post_id', 'pmproup_oembed_request_post_id', 10, 2 );
 
 //update the confirmation page
-function pmproup_pmpro_confirmation_message($message)
+function pmproup_pmpro_confirmation_message($message, $order = null)
 {
 	global $wpdb, $current_user;
 	
 	if(empty($current_user->ID))
 		return $message;
 	
+	// Only link a page if the confirmed level creates user pages.
+	$options = pmproup_getOptions();
+	if ( ! empty( $order->membership_id ) && ! in_array( $order->membership_id, $options['levels'] ) ) {
+		return $message;
+	}
+	
 	$user_page_id = pmproup_get_page_for_user( $current_user->ID );
 		
 	if(!empty($user_page_id)){
 		//get the last page created for them
-		$lastpage = $wpdb->get_row( $wpdb->prepare( "SELECT ID, post_title FROM $wpdb->posts WHERE post_type = 'page' AND post_parent = %d ORDER BY ID DESC LIMIT 1", $user_page_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared lookup of the user's latest page.
+		$lastpage = $wpdb->get_row( $wpdb->prepare( "SELECT ID, post_title, post_status FROM $wpdb->posts WHERE post_type = 'page' AND post_parent = %d ORDER BY ID DESC LIMIT 1", $user_page_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared lookup of the user's latest page.
 		
-		if(!empty($lastpage))
+		// Only link the newest page if it's published, so we never point to an older order's page.
+		if(!empty($lastpage) && 'publish' === $lastpage->post_status)
 		{
 			//okay update the message
 			$message .= sprintf(
@@ -569,7 +576,7 @@ function pmproup_pmpro_confirmation_message($message)
 	
 	return $message;
 }
-add_action("pmpro_confirmation_message", "pmproup_pmpro_confirmation_message");
+add_filter("pmpro_confirmation_message", "pmproup_pmpro_confirmation_message", 10, 2);
 
 /**
  * Get the IDs of user pages that should be hidden from the current user.
