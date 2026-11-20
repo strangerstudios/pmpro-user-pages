@@ -565,7 +565,7 @@ function pmproup_pmpro_confirmation_message($message, $order = null)
 	
 	return $message;
 }
-add_action("pmpro_confirmation_message", "pmproup_pmpro_confirmation_message", 10, 2);
+add_filter("pmpro_confirmation_message", "pmproup_pmpro_confirmation_message", 10, 2);
 
 /**
  * Get the IDs of user pages that should be hidden from the current user.
