@@ -140,7 +140,7 @@ function pmproup_add_user_pages_below_the_content($content)
 {
 	global $current_user, $post, $wpdb;
 	
-	//is this the current user's members page?	
+	//if a user is logged in and this is a main user page, show the owner's level pages (template_redirect limits who can view it)
 	if(!empty($current_user->ID) && !empty($post->ID))
 	{
 		$up_user_id = pmproup_get_user_page_owner( $post );
