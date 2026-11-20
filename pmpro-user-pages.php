@@ -277,7 +277,8 @@ function pmproup_get_user_page_owner( $post ) {
 	}
 
 	// Build an array of all related posts that could be user pages.
-	$pages_to_check = array_map( 'intval', array_merge( get_post_ancestors( $post ), array( $post->ID ) ) );
+	$ancestors      = array_map( 'intval', get_post_ancestors( $post ) );
+	$pages_to_check = array_merge( $ancestors, array( (int) $post->ID ) );
 
 	// Check if any of the related posts are user pages.
 	$owners[ $post->ID ] = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'pmproup_user_page' AND meta_value IN(" . implode(",", $pages_to_check) . ") LIMIT 1"); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $pages_to_check is run through intval above.
@@ -286,7 +287,7 @@ function pmproup_get_user_page_owner( $post ) {
 	// children up to the parent page) or their user is deleted (the user meta is removed). Treat the author as the owner.
 	if ( empty( $owners[ $post->ID ] ) ) {
 		$options = pmproup_getOptions();
-		if ( ! empty( $options['parent_page'] ) && in_array( (int) $options['parent_page'], array_map( 'intval', get_post_ancestors( $post ) ), true ) ) {
+		if ( ! empty( $options['parent_page'] ) && in_array( (int) $options['parent_page'], $ancestors, true ) ) {
 			$owners[ $post->ID ] = $post->post_author;
 		}
 	}
