@@ -565,7 +565,7 @@ add_action("pmpro_confirmation_message", "pmproup_pmpro_confirmation_message");
  *
  * All user pages are children of the User Pages parent page. This returns those pages (the main user pages)
  * and the children of those pages (the purchased pages), ignoring pages where the current user is author.
- * Admins and the admin side see everything, so nothing is hidden there.
+ * Admins see everything. Nothing is hidden on the admin side, except in admin-ajax requests from users who can't edit others' pages.
  *
  * @return array
  */
