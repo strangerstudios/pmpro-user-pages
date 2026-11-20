@@ -288,7 +288,8 @@ function pmproup_get_user_page_owner( $post ) {
 	if ( empty( $owners[ $post->ID ] ) ) {
 		$options = pmproup_getOptions();
 		if ( ! empty( $options['parent_page'] ) && in_array( (int) $options['parent_page'], $ancestors, true ) ) {
-			$owners[ $post->ID ] = $post->post_author;
+			// Pages with no author (e.g. after a direct database edit) get -1 so they stay restricted to admins.
+			$owners[ $post->ID ] = ! empty( $post->post_author ) ? $post->post_author : -1;
 		}
 	}
 
